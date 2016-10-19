@@ -7,7 +7,7 @@ client: client.o handshake.o packet.o tools.o debug.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 .c.o:
-	$(CC) -c -o $@ $^
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 .PHONY: clean
 

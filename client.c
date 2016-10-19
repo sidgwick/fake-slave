@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 
 #include "client.h"
+#include "tools.h"
 
 struct server_info server_info;
 
