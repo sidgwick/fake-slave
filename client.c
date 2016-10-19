@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #include "client.h"
-#include "tools.h"
+#include "query.h"
 
 struct server_info server_info;
 
@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
     server_info.sockfd = sockfd;
     // now you can comminute with the mysql server.
     handshake_with_server(&server_info);
+
+    // send checksum query to server.
+    checksum_binlog(&server_info);
     
     return 0;
 }
