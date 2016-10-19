@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define DEBUG 1
-
 struct server_info {
     int sockfd; // server socket
     uint8_t protocol_version;
