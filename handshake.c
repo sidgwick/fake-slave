@@ -83,20 +83,13 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, struct s
     return 0;
 }
 
-char *calculate_password_sha1(const char *password, unsigned char *buf)
+char *calculate_password_sha1(const struct server_info *info, const char *password, unsigned char *buf)
 {
-    static char auth_plugin_data_len;
-    static char *auth_plugin_data_part_2;
-
-
     unsigned char *r1 = buf + SHA_DIGEST_LENGTH;
     unsigned char *r2 = buf + SHA_DIGEST_LENGTH * 2;
     unsigned char *r3 = buf + SHA_DIGEST_LENGTH * 3;
 
     SHA1((unsigned char *)password, strlen(password), buf); // Round 1
-
-    char *auth_plugin_data_part_1 = "_F#yY45N";
-    auth_plugin_data_part_2 = "f7!>RbuHFgRD";
 
     // put the first step result to buf + SHA_DIGEST_LENGTH *2
     // second step result to buf + SHA_DIGEST_LENGTH
@@ -104,8 +97,7 @@ char *calculate_password_sha1(const char *password, unsigned char *buf)
     SHA1(buf, SHA_DIGEST_LENGTH, r2); // Round 2
 
     // concatenate password salt
-    memcpy(r1, auth_plugin_data_part_1, 8);
-    memcpy(r1 + 8, auth_plugin_data_part_2, MAX(12, auth_plugin_data_len - 9));
+    memcpy(r1, info->auth_plugin_data, info->auth_plugin_data_len - 1); // do not include the '\0' term
 
     SHA1(r1, SHA_DIGEST_LENGTH * 2, r3); // Round 4
     // one pass password sha1 hash ^ password
@@ -145,7 +137,7 @@ static int response_handshake_to_server(struct server_info *info)
     // hash password
     unsigned char *password_hash;
     password_hash = malloc(sizeof(char) * 1024);
-    calculate_password_sha1("1111", password_hash);
+    calculate_password_sha1(info, "1111", password_hash);
     *(buf + cursor) = SHA_DIGEST_LENGTH;
     memcpy(buf + cursor + 1, password_hash, SHA_DIGEST_LENGTH);
     free(password_hash);
