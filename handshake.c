@@ -123,7 +123,7 @@ static int response_handshake_to_server(struct server_info *info)
     int cursor = 4;
     int sockfd = info->sockfd;
 
-    tmp = CLIENT_PROTOCOL_41;
+    tmp = CLIENT_PROTOCOL_41 | CLIENT_SECURE_CONNECTION;
     memcpy(buf + cursor, &tmp, 4);
     cursor += 4;
 
