@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 int generate_length_encode_number(const char *buf, int *length)
 {
@@ -28,4 +29,20 @@ int generate_length_encode_number(const char *buf, int *length)
     }
 
     return data;
+}
+
+
+char *generate_length_encode_string(const char *buf, int *length)
+{
+    uint8_t len = *buf++;
+    char *string;
+
+    *length = 0;
+    string = malloc(sizeof(char) * len + 1); // append a '\0' byte.
+    memset(string, 0, len + 1);
+    memcpy(string, buf, len);
+
+    *length = len + 1;
+
+    return string;
 }

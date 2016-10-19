@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "client.h"
+#include "packet.h"
 #include "debug.h"
 
 int send_query(struct server_info *info, const char *sql)
@@ -28,16 +30,67 @@ int send_query(struct server_info *info, const char *sql)
     printf("Query data send to server:\n");
     print_memory(buf, cursor);
 #endif
-    read(info->sockfd, buf, 1024);
+
+    return 0;
+}
+
+int fetch_query_row(struct server_info *info)
+{
+    char buf[1024];
+    char *cursor;
+    int datalen;
+    // get response from server.
+    if ((datalen = read(info->sockfd, buf, 1024)) == -1) {
+        perror("Unable to read from server: ");
+        exit(0);
+    }
+
+    uint8_t field_count = *(buf + 4);
+
+    if (field_count == 0x00) {
+        // next is a ok packet
+        return check_ok_packet(buf + 5);
+    } else if (field_count == 0xFF) {
+        // next is a err packet
+        // check_err_packet(buf + 5);
+        return 0;
+    } else if (field_count == 0xFB) {
+        // get more client data.
+        return 0;
+    }
+
+    // parse column define packet
+    cursor = buf + 5;
+    while (cursor - buf < datalen) {
+        // here a new packet
+        uint32_t length = 0;
+        uint8_t id = 0;
+
+        memcpy(&length, cursor, 3);
+        cursor += 3;
+        id = *cursor++;
+
+        printf("Query result packet length: %d\n", length);
+        printf("Query result packet id: %d\n", id);
+
+        printf("Query result packet content:\n");
+        print_memory(cursor - 4, length + 4);
+
+        parse_column_define_packet(cursor);
+
+        cursor += length;
+    }
 
     return 0;
 }
 
 int checksum_binlog(struct server_info *info)
 {
-    char *sql = "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'";
+    // char *sql = "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'";
+    char *sql = "select Host,User,Password from mysql.user";
 
     send_query(info, sql);
+    fetch_query_row(info);
 
     return 0;
 }
