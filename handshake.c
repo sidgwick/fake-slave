@@ -11,93 +11,73 @@
 #include "client.h"
 
 extern int print_memory(char *, int);
+extern int print_server_info(struct server_info *);
 
-static char character_set;
-static char auth_plugin_data_len;
-static char *auth_plugin_data_part_2;
-static char auth_plugin_data_part_1[8];
-
-static int parse_handshake_body(char *buf, int length, int sequence_id, struct server_info *server_info)
+static int parse_handshake_body(char *buf, int length, int sequence_id, struct server_info *info)
 {
     print_memory(buf, length); putchar('\n');
 
     char *buf_start = buf;
+    char auth_plugin_data[1024];
     
-    uint8_t protocol_version;
     // Protocol version
-    protocol_version = *buf++;
+    info->protocol_version = *buf++;
 
-    char *server_version;
     // server version 
-    server_version = buf;
-    buf += strlen(server_version) + 1; // additional null byte
+    info->server_version = malloc(sizeof(char) * strlen(buf) + 1);
+    strcpy(info->server_version, buf);
+    buf += strlen(info->server_version) + 1; // additional null byte
 
-    uint32_t connection_id;
     // connection id
-    memcpy(&connection_id, buf, 4);
+    memcpy(&info->connection_id, buf, sizeof(uint32_t));
     buf += sizeof(uint32_t);
 
     // auth_plugin_data_part_1
-    memcpy(auth_plugin_data_part_1, buf, 8);
+    memcpy(auth_plugin_data, buf, 8);
     buf += 8;
 
-    char filter;
     // filter
-    filter = *buf++;
+    info->filter = *buf++;
 
     if (buf - buf_start >= length) {
         // no more data.
         return 0;
     }
 
-    uint16_t capability_flag_1;
     // capability_flag_1
-    memcpy(&capability_flag_1, buf, 2);
+    memcpy((char *)(&info->capability_flags), buf, 2);
     buf += 2;
 
     // character_set
-    character_set = *buf++;
+    info->character_set = *buf++;
 
-    uint16_t status_flags;
     // status_flags
-    memcpy(&status_flags, buf, 2);
+    memcpy(&info->status_flags, buf, 2);
     buf += 2;
 
-    uint16_t capability_flags_2;
     // capability_flags_2
-    memcpy(&capability_flags_2, buf, 2);
+    memcpy((char *)(&info->capability_flags + 2), buf, 2);
     buf += 2;
 
     // auth_plugin_data_len
-    auth_plugin_data_len = *buf++;
+    info->auth_plugin_data_len = *buf++;
 
-    char *reserved;
     // reserved
-    reserved = buf;
+    memcpy(info->reserved, buf, 10);
     buf += 10;
 
     // auth-plugin-data-part-2
-    auth_plugin_data_part_2 = buf;
-    buf += MAX(12, auth_plugin_data_len - 9);
+    memcpy(auth_plugin_data + 8, buf, MAX(13, info->auth_plugin_data_len - 8));
+    buf += MAX(13, info->auth_plugin_data_len - 8);
+    info->auth_plugin_data = malloc(sizeof(char) * info->auth_plugin_data_len);
+    memcpy(info->auth_plugin_data, auth_plugin_data, info->auth_plugin_data_len);
 
     // auth_plugin_name
-    char *auth_plugin_name;
-    auth_plugin_name = buf;
+    info->auth_plugin_name = malloc(sizeof(char) * strlen(buf));
+    strcpy(info->auth_plugin_name, buf);
 
 #ifdef DEBUG
-    printf("Protocol version: %02x\n", protocol_version);
-    printf("Server version: %s\n", server_version);
-    printf("Connection ID: %u => ", connection_id); print_memory((char *)&connection_id, 4); putchar('\n');
-    printf("Auth plugin data part 1: %s => ", auth_plugin_data_part_1); print_memory(auth_plugin_data_part_1, 8); putchar('\n');
-    printf("Filter: %02x\n", filter);
-    printf("Capability_flag_1: %d => ", capability_flag_1); print_memory((char *)&capability_flag_1, 2); putchar('\n');
-    printf("Charset: %02X\n", character_set);
-    printf("Status flag: %d => ", status_flags); print_memory((char *)&status_flags, 2); putchar('\n');
-    printf("Capability_flag_2: %d => ", capability_flags_2); print_memory((char *)&capability_flags_2, 2); putchar('\n');
-    printf("Auth data plugin len: %d(0x%02X)\n", auth_plugin_data_len, auth_plugin_data_len);
-    printf("Reversed: "); print_memory(reserved, 10); putchar('\n');
-    printf("Auth plugin data part 2: %s => ", auth_plugin_data_part_2); print_memory(auth_plugin_data_part_2, MAX(12, auth_plugin_data_len - 9)); putchar('\n');
-    printf("Auth plugin name: %s => ", auth_plugin_name); print_memory(auth_plugin_name, strlen(auth_plugin_name)); putchar('\n');
+    print_server_info(info);
 #endif
 
     return 0;
@@ -105,6 +85,10 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, struct s
 
 char *calculate_password_sha1(const char *password, unsigned char *buf)
 {
+static char auth_plugin_data_len;
+static char *auth_plugin_data_part_2;
+
+
     unsigned char *r1 = buf + SHA_DIGEST_LENGTH;
     unsigned char *r2 = buf + SHA_DIGEST_LENGTH * 2;
     unsigned char *r3 = buf + SHA_DIGEST_LENGTH * 3;
@@ -132,12 +116,12 @@ char *calculate_password_sha1(const char *password, unsigned char *buf)
     return 0;
 }
 
-static int response_handshake_to_server(struct server_info *server_info)
+static int response_handshake_to_server(struct server_info *info)
 {
     char buf[1024];
     int tmp;
     int cursor = 4;
-    int sockfd = server_info->sockfd;
+    int sockfd = info->sockfd;
 
     tmp = CLIENT_PROTOCOL_41;
     memcpy(buf + cursor, &tmp, 4);
@@ -148,7 +132,7 @@ static int response_handshake_to_server(struct server_info *server_info)
     cursor += 4;
 
     tmp = CHARSET_UTF_8;
-    memcpy(buf + cursor, &character_set, 1);
+    memcpy(buf + cursor, &info->character_set, 1);
     cursor += 1;
 
     // reversed 23 bytes
