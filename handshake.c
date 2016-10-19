@@ -19,7 +19,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, struct s
 
     char *buf_start = buf;
     char auth_plugin_data[1024];
-    
+
     // Protocol version
     info->protocol_version = *buf++;
 
@@ -85,8 +85,8 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, struct s
 
 char *calculate_password_sha1(const char *password, unsigned char *buf)
 {
-static char auth_plugin_data_len;
-static char *auth_plugin_data_part_2;
+    static char auth_plugin_data_len;
+    static char *auth_plugin_data_part_2;
 
 
     unsigned char *r1 = buf + SHA_DIGEST_LENGTH;
@@ -164,17 +164,18 @@ static int response_handshake_to_server(struct server_info *info)
     tmp = (cursor - 4) | (1 << 24);
     memcpy(buf, &tmp, 4);
 
-
     printf("Data send to server: \n");
     print_memory(buf, cursor); putchar('\n');
 
     write(sockfd, buf, cursor);
 
-
     if ((tmp = read(sockfd, buf, 1024)) == -1) {
         perror("Can not read from server: ");
     }
+
+    printf("Response from server: \n");
     write(fileno(stdout), buf, tmp);
+    putchar('\n');
 
     return 0;
 }
