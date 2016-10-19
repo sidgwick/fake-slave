@@ -8,15 +8,15 @@
 #include "capability_falgs.h"
 #include "character_set.h"
 #include "handshake.h"
+#include "packet.h"
 #include "client.h"
 
-extern int print_memory(char *, int);
-extern int print_server_info(struct server_info *);
+#ifdef DEBUG
+#include "debug.h"
+#endif
 
 static int parse_handshake_body(char *buf, int length, int sequence_id, struct server_info *info)
 {
-    print_memory(buf, length); putchar('\n');
-
     char *buf_start = buf;
     char auth_plugin_data[1024];
 
@@ -115,14 +115,17 @@ static int response_handshake_to_server(struct server_info *info)
     int cursor = 4;
     int sockfd = info->sockfd;
 
-    tmp = CLIENT_PROTOCOL_41 | CLIENT_SECURE_CONNECTION;
+    // capability flags
+    tmp = CLIENT_PROTOCOL_41 | CLIENT_SECURE_CONNECTION | CLIENT_CONNECT_WITH_DB;
     memcpy(buf + cursor, &tmp, 4);
     cursor += 4;
 
+    // max-packet size
     tmp = 0xFFFFFFFF;
     memcpy(buf + cursor, &tmp, 4);
     cursor += 4;
 
+    // character set
     tmp = CHARSET_UTF_8;
     memcpy(buf + cursor, &info->character_set, 1);
     cursor += 1;
@@ -131,6 +134,7 @@ static int response_handshake_to_server(struct server_info *info)
     memset(buf + cursor, 0, 23);
     cursor += 23;
 
+    // user name
     memcpy(buf + cursor, "root\0", 5);
     cursor += 5;
 
@@ -138,16 +142,18 @@ static int response_handshake_to_server(struct server_info *info)
     unsigned char *password_hash;
     password_hash = malloc(sizeof(char) * 1024);
     calculate_password_sha1(info, "1111", password_hash);
+    // CLIENT_SECURE_CONNECTION set, password hash length is the SHA_DIGEST_LENGTH.
     *(buf + cursor) = SHA_DIGEST_LENGTH;
+    // copy password hash to buffer.
     memcpy(buf + cursor + 1, password_hash, SHA_DIGEST_LENGTH);
     free(password_hash);
     cursor += SHA_DIGEST_LENGTH + 1;
 
-    // database
-    memcpy(buf + cursor, "test\0", 5);
-    cursor += 5;
+    // CLIENT_CONNECT_WITH_DB set, database
+    memcpy(buf + cursor, "lavion\0", 7);
+    cursor += 7;
 
-    // auth plug name
+    // CLIENT_SECURE_CONNECTION auth plug name
     memcpy(buf + cursor, "mysql_native_password", 21);
     cursor += 21;
 
@@ -156,18 +162,30 @@ static int response_handshake_to_server(struct server_info *info)
     tmp = (cursor - 4) | (1 << 24);
     memcpy(buf, &tmp, 4);
 
+#ifdef DEBUG
     printf("Data send to server: \n");
-    print_memory(buf, cursor); putchar('\n');
+    print_memory(buf, cursor);
+#endif
 
+    // send handshake response to server.
     write(sockfd, buf, cursor);
 
+    // make soure we login success
     if ((tmp = read(sockfd, buf, 1024)) == -1) {
         perror("Can not read from server: ");
+        exit(1);
     }
 
+    // check OK packet.
+    if (check_ok_packet(buf) != 0) {
+        printf("Connect connect server failed.\n");
+        exit(1);
+    }
+
+#ifdef DEBUG
     printf("Response from server: \n");
-    write(fileno(stdout), buf, tmp);
-    putchar('\n');
+    print_memory(buf, tmp);
+#endif
 
     return 0;
 }
@@ -193,6 +211,8 @@ int handshake_with_server(struct server_info *server_info) {
     memcpy(&sequence_id, buf + 3, 1);
 
 #ifdef DEBUG
+    printf("Package from server: ");
+    print_memory(buf, length + 4);
     printf("Package length: %d\n", length);
     printf("Package sequence ID: %d\n", sequence_id);
 #endif
