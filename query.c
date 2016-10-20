@@ -49,7 +49,7 @@ int fetch_query_row(struct server_info *info)
 
     if (field_count == 0x00) {
         // next is a ok packet
-        return check_ok_packet(buf + 5);
+        return parse_ok_packet(buf + 5);
     } else if (field_count == 0xFF) {
         // next is a err packet
         // check_err_packet(buf + 5);

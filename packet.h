@@ -16,7 +16,7 @@ struct ok_packet {
     char eof;
 };
 
-int check_ok_packet(const char *);
+int parse_ok_packet(const char *);
 int parse_column_define_packet(const char *);
 
 #endif

@@ -6,7 +6,7 @@
 #include "packet.h"
 #include "tools.h"
 
-int check_ok_packet(const char *buf)
+int parse_ok_packet(const char *buf)
 {
     struct ok_packet pkt;
     int cursor = 0;

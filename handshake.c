@@ -177,7 +177,7 @@ static int response_handshake_to_server(struct server_info *info)
     }
 
     // check OK packet.
-    if (check_ok_packet(buf) != 0) {
+    if (parse_ok_packet(buf) != 0) {
         printf("Connect connect server failed.\n");
         exit(1);
     }
