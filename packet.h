@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-struct ok_packet {
+typedef struct {
     uint32_t length;
     uint8_t id;
     char header;
@@ -14,9 +14,9 @@ struct ok_packet {
     char *info;
     char *session_state_changes;
     char eof;
-};
+} ok_packet;
 
-int parse_ok_packet(const char *);
+int parse_ok_packet(const char *, ok_packet *);
 int parse_column_define_packet(const char *);
 
 #endif

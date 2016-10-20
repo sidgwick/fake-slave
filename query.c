@@ -47,13 +47,13 @@ int fetch_query_row(struct server_info *info)
 
     uint8_t field_count = *(buf + 4);
 
-    if (field_count == 0x00) {
-        // next is a ok packet
-        return parse_ok_packet(buf + 5);
-    } else if (field_count == 0xFF) {
-        // next is a err packet
-        // check_err_packet(buf + 5);
-        return 0;
+    if (field_count == 0x00 || field_count == 0xFF) {
+        // next is a OK/ERR packet
+        ok_packet ok_pkt;
+        if (parse_ok_packet(buf + 5, &ok_pkt) == -1) {
+            printf("Unexpect packet: expect %s_Packet\n", (field_count == 0x00) ? "OK" : "ERR");
+            exit(2);
+        }
     } else if (field_count == 0xFB) {
         // get more client data.
         return 0;

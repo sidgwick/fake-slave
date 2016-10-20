@@ -176,10 +176,12 @@ static int response_handshake_to_server(struct server_info *info)
         exit(1);
     }
 
+    // server will response a OK_Packet if we success login.
     // check OK packet.
-    if (parse_ok_packet(buf) != 0) {
-        printf("Connect connect server failed.\n");
-        exit(1);
+    ok_packet ok_pkt;
+    if (parse_ok_packet(buf, &ok_pkt) == -1 || ok_pkt.header == 0xFE) {
+        printf("Unexpect packet, expect OK_Packet.\n");
+        exit(2);
     }
 
 #ifdef DEBUG
