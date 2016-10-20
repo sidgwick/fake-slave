@@ -7,7 +7,7 @@
 #include "tools.h"
 
 // parse ok packet
-// return OK/ERR packet header or -1 if not a OK/ERR packet.
+// return OK/EOF packet header or -1 if not a OK/EOF packet.
 int parse_ok_packet(const char *buf, ok_packet *pkt)
 {
     int cursor = 0;
