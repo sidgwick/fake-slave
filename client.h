@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-struct server_info {
+typedef struct {
     int sockfd; // server socket
     uint8_t protocol_version;
     char *server_version;
@@ -16,6 +16,6 @@ struct server_info {
     char *auth_plugin_data; // length of (auth_plugin_data + '\0') == auth_plugin_data_len.
     char reserved[10];
     char *auth_plugin_name;
-};
+} server_info;
 
 #endif

@@ -8,9 +8,9 @@
 #include "client.h"
 #include "query.h"
 
-struct server_info server_info;
+server_info info;
 
-extern int handshake_with_server(struct server_info *);
+extern int handshake_with_server(server_info *);
 
 int main(int argc, char *argv[])
 {
@@ -31,12 +31,12 @@ int main(int argc, char *argv[])
     }
 
     // save this sock file descriptor to server_info struct.
-    server_info.sockfd = sockfd;
+    info.sockfd = sockfd;
     // now you can comminute with the mysql server.
-    handshake_with_server(&server_info);
+    handshake_with_server(&info);
 
     // send checksum query to server.
-    checksum_binlog(&server_info);
-    
+    checksum_binlog(&info);
+
     return 0;
 }

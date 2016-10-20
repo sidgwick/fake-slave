@@ -29,7 +29,7 @@ int print_memory(char *mem, int len)
 }
 
 
-int print_server_info(struct server_info *info)
+int print_server_info(server_info *info)
 {
     printf("Protocol version: %02x\n", info->protocol_version);
     printf("Server version: %s\n", info->server_version);
@@ -61,5 +61,5 @@ int print_server_info(struct server_info *info)
 }
 #else
 int print_memory(char *mem, int len) {return 0;}
-int print_server_info(struct server_info *info) {return 0;}
+int print_server_info(server_info *info) {return 0;}
 #endif

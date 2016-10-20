@@ -15,7 +15,7 @@
 #include "debug.h"
 #endif
 
-static int parse_handshake_body(char *buf, int length, int sequence_id, struct server_info *info)
+static int parse_handshake_body(char *buf, int length, int sequence_id, server_info *info)
 {
     char *buf_start = buf;
     char auth_plugin_data[1024];
@@ -83,7 +83,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, struct s
     return 0;
 }
 
-char *calculate_password_sha1(const struct server_info *info, const char *password, unsigned char *buf)
+char *calculate_password_sha1(const server_info *info, const char *password, unsigned char *buf)
 {
     unsigned char *r1 = buf + SHA_DIGEST_LENGTH;
     unsigned char *r2 = buf + SHA_DIGEST_LENGTH * 2;
@@ -108,7 +108,7 @@ char *calculate_password_sha1(const struct server_info *info, const char *passwo
     return 0;
 }
 
-static int response_handshake_to_server(struct server_info *info)
+static int response_handshake_to_server(server_info *info)
 {
     char buf[1024];
     int tmp;
@@ -192,7 +192,7 @@ static int response_handshake_to_server(struct server_info *info)
     return 0;
 }
 
-int handshake_with_server(struct server_info *server_info) {
+int handshake_with_server(server_info *server_info) {
     uint32_t length = 0;
     uint32_t sequence_id = 0;
     int datalen;

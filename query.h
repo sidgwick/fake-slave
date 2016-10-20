@@ -3,7 +3,7 @@
 
 #include "client.h"
 
-int send_query(struct server_info *info, const char *sql);
-int checksum_binlog(struct server_info *info);
+int send_query(server_info *info, const char *sql);
+int checksum_binlog(server_info *info);
 
 #endif

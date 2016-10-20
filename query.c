@@ -7,7 +7,7 @@
 #include "packet.h"
 #include "debug.h"
 
-int send_query(struct server_info *info, const char *sql)
+int send_query(server_info *info, const char *sql)
 {
     char buf[1024];
     int cursor = 4;
@@ -34,7 +34,7 @@ int send_query(struct server_info *info, const char *sql)
     return 0;
 }
 
-int fetch_query_row(struct server_info *info)
+int fetch_query_row(server_info *info)
 {
     char buf[1024];
     char *cursor;
@@ -84,7 +84,7 @@ int fetch_query_row(struct server_info *info)
     return 0;
 }
 
-int checksum_binlog(struct server_info *info)
+int checksum_binlog(server_info *info)
 {
     // char *sql = "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'";
     char *sql = "select Host,User,Password from mysql.user";
