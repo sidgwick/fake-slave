@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "client.h"
+#include "capability_flags.h"
 #include "packet.h"
 #include "debug.h"
 

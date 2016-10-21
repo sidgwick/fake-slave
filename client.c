@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 
 #include "client.h"
+#include "binlog.h"
 #include "query.h"
 
 server_info info;
@@ -37,6 +38,9 @@ int main(int argc, char *argv[])
 
     // send checksum query to server.
     checksum_binlog(&info);
+
+    // binlog event loop
+    // run_binlog_stream(&info);
 
     return 0;
 }

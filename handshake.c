@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <openssl/sha.h>
 
-#include "capability_falgs.h"
+#include "capability_flags.h"
 #include "character_set.h"
 #include "handshake.h"
 #include "packet.h"
