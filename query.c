@@ -74,13 +74,27 @@ int fetch_query_row(server_info *info)
         cursor += 3;
         id = *cursor++;
 
+
+        if (id <= field_count) {
+            // column definition packet
+            parse_column_define_packet(cursor);
+        } else if (!(CLIENT_DEPRECATE_EOF & info->capability_flags) && id == (field_count + 1)) {
+            // a EOF packet
+            ok_packet eof_pkt;
+            parse_ok_packet(cursor, &eof_pkt);
+        } else {
+            // column value.
+            // parse_column_value();
+        }
+
+
+#ifdef DEBUG
         printf("Query result packet length: %d\n", length);
         printf("Query result packet id: %d\n", id);
 
         printf("Query result packet content:\n");
         print_memory(cursor - 4, length + 4);
-
-        parse_column_define_packet(cursor);
+#endif
 
         cursor += length;
     }
