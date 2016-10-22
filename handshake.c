@@ -150,7 +150,7 @@ static int response_handshake_to_server(server_info *info)
     cursor += SHA_DIGEST_LENGTH + 1;
 
     // CLIENT_CONNECT_WITH_DB set, database
-    memcpy(buf + cursor, "lavion\0", 7);
+    memcpy(buf + cursor, "mysql", 7);
     cursor += 7;
 
     // CLIENT_SECURE_CONNECTION auth plug name
