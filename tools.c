@@ -32,6 +32,7 @@ int generate_length_encode_number(const char *buf, int *length)
 }
 
 
+// assume length less than 251, just for now
 char *generate_length_encode_string(const char *buf, int *length)
 {
     uint8_t len = *buf++;
@@ -45,4 +46,21 @@ char *generate_length_encode_string(const char *buf, int *length)
     *length = len + 1;
 
     return string;
+}
+
+// assume length less than 251, just for now.
+int set_length_encode_string(char *buf, char *string, int *length)
+{
+    *length = strlen(string);
+    memcpy(buf, length, 1);
+    memcpy(buf + 1, string, *length);
+    *length += 1;
+
+    return *length;
+}
+
+int set_length_encode_integer(char *buf, int num, int *length)
+{
+    // do some thing.
+    return 0;
 }

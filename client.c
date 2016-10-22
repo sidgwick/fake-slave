@@ -39,8 +39,11 @@ int main(int argc, char *argv[])
     // send checksum query to server.
     checksum_binlog(&info);
 
+    // register as a slave.
+    register_as_slave(&info);
+
     // binlog event loop
-    // run_binlog_stream(&info);
+    run_binlog_stream(&info);
 
     return 0;
 }

@@ -5,7 +5,9 @@
 
 #include "client.h"
 #include "capability_flags.h"
+#include "query.h"
 #include "packet.h"
+#include "tools.h"
 #include "debug.h"
 
 int send_query(server_info *info, const char *sql)
@@ -14,8 +16,8 @@ int send_query(server_info *info, const char *sql)
     int cursor = 4;
     int tmp;
 
-    // COM_QUERY
-    *(buf + cursor++) = 0x03;
+    // COM_QUERY protocol
+    *(buf + cursor++) = COM_QUERY;
     // QUERY_STRING
     printf("SQL: %s\n", sql);
     strcpy(buf + cursor, sql);
@@ -112,6 +114,66 @@ int checksum_binlog(server_info *info)
 
     send_query(info, sql);
     fetch_query_row(info);
+
+    return 0;
+}
+
+int register_as_slave(server_info *info)
+{
+    char buf[1024];
+    int cursor = 4;
+    int tmp = 0;
+
+    // COM_REGISTER_SLAVE
+    *(buf + cursor) = COM_REGISTER_SLAVE;
+    cursor += 1;
+
+    // slave id
+    tmp = 1001;
+    memcpy(buf + cursor, &tmp, 4);
+    cursor += 4;
+
+    // host name.
+    set_length_encode_string(buf + cursor, "song_localhost", &tmp);
+    cursor += tmp;
+
+    // username
+    set_length_encode_string(buf + cursor, "root", &tmp);
+    cursor += tmp;
+
+    // password
+    set_length_encode_string(buf + cursor, "1111", &tmp);
+    cursor += tmp;
+
+    // slave port
+    tmp = 20001;
+    memcpy(buf + cursor, &tmp, 2);
+    cursor += 2;
+
+    // replication rank
+    tmp = 0;
+    memcpy(buf + cursor, &tmp, 4);
+    cursor += 4;
+
+    // master id
+    tmp = 0;
+    memcpy(buf + cursor, &tmp, 4);
+    cursor += 4;
+
+    cursor -= 4;
+    memcpy(buf, &cursor, 3);
+    *(buf + 3) = 0;
+
+    write(info->sockfd, buf, cursor + 4);
+
+    // expect a OK packet here.
+    read(info->sockfd, buf, 1024);
+    ok_packet ok_pkt;
+    if (parse_ok_packet(buf, &ok_pkt) != 0x00) {
+        // ERR packet.
+        printf("Unable to register as a slave.\n");
+        exit(3);
+    }
 
     return 0;
 }
