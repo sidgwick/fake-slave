@@ -104,6 +104,9 @@ int fetch_query_row(server_info *info)
 
 int checksum_binlog(server_info *info)
 {
+    // TODO: query from server.
+    return 0;
+
     // char *sql = "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'";
     char *sql = "select Host,User,Password from mysql.user";
 
