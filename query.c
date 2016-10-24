@@ -177,3 +177,46 @@ int register_as_slave(server_info *info)
 
     return 0;
 }
+
+int send_binlog_dump_request(server_info *info)
+{
+    char buf[1024];
+    int cursor = 4;
+    int tmp;
+
+    // COM_BINLOG_DUMP
+    *(buf + cursor) = COM_BINLOG_DUMP;
+    cursor += 1;
+
+    // binlog postion
+    tmp = 675;
+    memcpy(buf + cursor, &tmp, 4);
+    cursor += 4;
+
+    // flag
+    tmp = 0;
+    memcpy(buf + cursor, &tmp, 2);
+    cursor += 2;
+
+    // slave server id
+    tmp = 1001;
+    memcpy(buf + cursor, &tmp, 4);
+    cursor += 4;
+
+    // binlog file name.
+    char binlog_filename[] = "mysql-bin.000006";
+    strcpy(buf + cursor, binlog_filename);
+    cursor += strlen(binlog_filename) + 1; // include the '\0' term null byte.
+
+    tmp = cursor - 4;
+    memcpy(buf, &tmp, 3);
+    *(buf + 3) = 0;
+
+    write(info->sockfd, buf, cursor);
+
+    while (read(info->sockfd, buf, 1024) != -1) {
+        // do parse binlog.
+    }
+
+    return 0;
+}

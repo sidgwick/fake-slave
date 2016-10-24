@@ -42,6 +42,9 @@ int main(int argc, char *argv[])
     // register as a slave.
     register_as_slave(&info);
 
+    // send binlog dump request
+    send_binlog_dump_request(&info);
+
     // binlog event loop
     run_binlog_stream(&info);
 

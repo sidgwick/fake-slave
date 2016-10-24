@@ -150,8 +150,8 @@ static int response_handshake_to_server(server_info *info)
     cursor += SHA_DIGEST_LENGTH + 1;
 
     // CLIENT_CONNECT_WITH_DB set, database
-    memcpy(buf + cursor, "mysql", 7);
-    cursor += 7;
+    memcpy(buf + cursor, "test", 5);
+    cursor += 5;
 
     // CLIENT_SECURE_CONNECTION auth plug name
     memcpy(buf + cursor, "mysql_native_password", 21);
