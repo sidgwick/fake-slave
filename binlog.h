@@ -3,6 +3,43 @@
 
 #include "client.h"
 
+#define UNKNOWN_EVENT 0x00
+#define START_EVENT_V3 0x01
+#define QUERY_EVENT 0x02
+#define STOP_EVENT 0x03
+#define ROTATE_EVENT 0x04
+#define INTVAR_EVENT 0x05
+#define LOAD_EVENT 0x06
+#define SLAVE_EVENT 0x07
+#define CREATE_FILE_EVENT 0x08
+#define APPEND_BLOCK_EVENT 0x09
+#define EXEC_LOAD_EVENT 0x0a
+#define DELETE_FILE_EVENT 0x0b
+#define NEW_LOAD_EVENT 0x0c
+#define RAND_EVENT 0x0d
+#define USER_VAR_EVENT 0x0e
+#define FORMAT_DESCRIPTION_EVENT 0x0f
+#define XID_EVENT 0x10
+#define BEGIN_LOAD_QUERY_EVENT 0x11
+#define EXECUTE_LOAD_QUERY_EVENT 0x12
+#define TABLE_MAP_EVENT 0x13
+#define WRITE_ROWS_EVENTv0 0x14
+#define UPDATE_ROWS_EVENTv0 0x15
+#define DELETE_ROWS_EVENTv0 0x16
+#define WRITE_ROWS_EVENTv1 0x17
+#define UPDATE_ROWS_EVENTv1 0x18
+#define DELETE_ROWS_EVENTv1 0x19
+#define INCIDENT_EVENT 0x1a
+#define HEARTBEAT_EVENT 0x1b
+#define IGNORABLE_EVENT 0x1c
+#define ROWS_QUERY_EVENT 0x1d
+#define WRITE_ROWS_EVENTv2 0x1e
+#define UPDATE_ROWS_EVENTv2 0x1f
+#define DELETE_ROWS_EVENTv2 0x20
+#define GTID_EVENT 0x21
+#define ANONYMOUS_GTID_EVENT 0x22
+#define PREVIOUS_GTIDS_EVENT 0x23
+
 int run_binlog_stream(server_info *);
 
 #endif
