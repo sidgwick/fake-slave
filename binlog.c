@@ -77,6 +77,7 @@ int run_binlog_stream(server_info *info)
             printf("header.falgs: %d\n", flags); print_memory(buf + cursor - 2, 2);
 #endif
 
+            uint64_t tmp_length = 0;
             switch (event_type) {
             case UNKNOWN_EVENT:
                 cursor += (length - 20);
@@ -100,7 +101,7 @@ int run_binlog_stream(server_info *info)
                 uint64_t position;
                 memcpy(&position, buf + cursor, 8);
                 cursor += 8;
-                int tmp_length = sizeof(char) * (event_size - 27);
+                tmp_length = sizeof(char) * (event_size - 27);
                 char *next_file = malloc(tmp_length);
                 memcpy(next_file, buf + cursor, tmp_length);
                 *(next_file + tmp_length) = 0;
@@ -151,8 +152,36 @@ int run_binlog_stream(server_info *info)
                 printf("USER_VAR_EVENT\n");
                 break;
             case FORMAT_DESCRIPTION_EVENT:
-                cursor += (length - 20);
+                puts("======================================");
+                uint16_t binlog_version;
+                memcpy(&binlog_version, buf + cursor, 2);
+                cursor += 2;
+
+                char mysql_version[50];
+                strcpy(mysql_version, buf + cursor);
+                cursor += 50;
+
+                uint32_t create_timestamp;
+                memcpy(&create_timestamp, buf + cursor, 4);
+                cursor += 4;
+
+                uint8_t event_header_length;
+                event_header_length = *(buf + cursor++);
+
+                tmp_length = sizeof(char) * (event_size - (19 + 2 + 50 + 4 + 1));
+                char *event_type_header_length = malloc(tmp_length);
+                memcpy(event_type_header_length, buf + cursor, tmp_length);
+                cursor += tmp_length;
+
+                printf("Tmp length: %ld\n", tmp_length);
+                printf("Binlog version: %d\n", binlog_version);
+                printf("MySQL version: %s\n", mysql_version);
+                printf("Create timestamp: %d\n", create_timestamp);
+                printf("Event header length: %d\n", event_header_length);
+                printf("Event type header length: ...\n");
+
                 printf("FORMAT_DESCRIPTION_EVENT\n");
+                puts("======================================");
                 break;
             case XID_EVENT:
                 cursor += (length - 20);
