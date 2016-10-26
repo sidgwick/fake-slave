@@ -7,6 +7,7 @@
 #include "client.h"
 #include "query.h"
 #include "binlog.h"
+#include "tools.h"
 #include "debug.h"
 
 int run_binlog_stream(server_info *info)
@@ -19,6 +20,7 @@ int run_binlog_stream(server_info *info)
         // do parse binlog.
         cursor = 0;
         while (cursor < tmp) {
+            puts("======================================");
             int length = 0;
             char sequence_id = 0;
 
@@ -77,7 +79,7 @@ int run_binlog_stream(server_info *info)
             printf("header.falgs: %d\n", flags); print_memory(buf + cursor - 2, 2);
 #endif
 
-            uint64_t tmp_length = 0;
+            int tmp_length = 0;
             switch (event_type) {
             case UNKNOWN_EVENT:
                 cursor += (length - 20);
@@ -88,15 +90,74 @@ int run_binlog_stream(server_info *info)
                 printf("START_EVENT_V3\n");
                 break;
             case QUERY_EVENT:
-                cursor += (length - 20);
+                /*
+                4              slave_proxy_id
+                4              execution time
+                1              schema length
+                2              error-code
+                  if binlog-version ≥ 4:
+                2              status-vars length
+                */
                 printf("QUERY_EVENT\n");
+                uint32_t slave_proxy_id;
+                memcpy(&slave_proxy_id, buf + cursor, 4);
+                cursor += 4;
+
+                uint32_t execution_time;
+                memcpy(&execution_time, buf + cursor, 4);
+                cursor += 4;
+
+                uint8_t schema_length;
+                schema_length = *(buf + cursor++);
+
+                uint16_t error_code;
+                memcpy(&error_code, buf + cursor, 2);
+                cursor += 2;
+
+                uint16_t status_vars_length;
+                memcpy(&status_vars_length, buf + cursor, 2);
+                cursor += 2;
+
+                printf("Slave proxy id: %d\n", slave_proxy_id);
+                printf("Execution time: %d\n", execution_time);
+                printf("Schema length: %d\n", schema_length);
+                printf("Error code: %d\n", error_code);
+                printf("Status vars length: %d\n", status_vars_length);
+
+                /*
+                string[$len]   status-vars
+                string[$len]   schema
+                1              [00]
+                string[EOF]    query
+                */
+
+
+                char *status_vars = malloc(sizeof(char) * status_vars_length);
+                memcpy(status_vars, buf + cursor, status_vars_length);
+                cursor += status_vars_length;
+                printf("status_vars prefix length: %d\n", status_vars_length);
+
+                char *schema = malloc(sizeof(char) * schema_length);
+                cursor += schema_length;
+                printf("schema prefix length: %d\n", schema_length);
+
+                cursor++;
+
+                tmp_length = event_size - (19 + 13 + status_vars_length + schema_length + 1);
+                char *query = malloc(tmp_length);
+                memcpy(query, buf + cursor, tmp_length);
+                cursor += tmp_length;
+
+                printf("Status vars: %s\n", status_vars);
+                printf("Schema: %s\n", schema);
+                printf("Query: %s\n", query);
+
                 break;
             case STOP_EVENT:
                 cursor += (length - 20);
                 printf("STOP_EVENT\n");
                 break;
             case ROTATE_EVENT:
-                puts("======================================");
                 printf("ROTATE_EVENT\n");
                 uint64_t position;
                 memcpy(&position, buf + cursor, 8);
@@ -106,10 +167,9 @@ int run_binlog_stream(server_info *info)
                 memcpy(next_file, buf + cursor, tmp_length);
                 *(next_file + tmp_length) = 0;
                 cursor += tmp_length;
-                printf("Tmp length: %ld\n", tmp_length);
+                printf("Tmp length: %d\n", tmp_length);
                 printf("Position: %ld\n", position);
                 printf("Next file name: %s\n", next_file);
-                puts("======================================");
                 break;
             case INTVAR_EVENT:
                 cursor += (length - 20);
@@ -152,7 +212,7 @@ int run_binlog_stream(server_info *info)
                 printf("USER_VAR_EVENT\n");
                 break;
             case FORMAT_DESCRIPTION_EVENT:
-                puts("======================================");
+                printf("FORMAT_DESCRIPTION_EVENT\n");
                 uint16_t binlog_version;
                 memcpy(&binlog_version, buf + cursor, 2);
                 cursor += 2;
@@ -173,15 +233,13 @@ int run_binlog_stream(server_info *info)
                 memcpy(event_type_header_length, buf + cursor, tmp_length);
                 cursor += tmp_length;
 
-                printf("Tmp length: %ld\n", tmp_length);
+                printf("Tmp length: %d\n", tmp_length);
                 printf("Binlog version: %d\n", binlog_version);
                 printf("MySQL version: %s\n", mysql_version);
                 printf("Create timestamp: %d\n", create_timestamp);
                 printf("Event header length: %d\n", event_header_length);
                 printf("Event type header length: ...\n");
 
-                printf("FORMAT_DESCRIPTION_EVENT\n");
-                puts("======================================");
                 break;
             case XID_EVENT:
                 cursor += (length - 20);
@@ -268,6 +326,8 @@ int run_binlog_stream(server_info *info)
                 printf("Unknow binlog event.\n");
                 break;
             }
+
+            puts("======================================");
         }
 
         memcpy(buf, buf + cursor, 1024 - cursor);
