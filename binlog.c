@@ -118,12 +118,6 @@ int run_binlog_stream(server_info *info)
                 memcpy(&status_vars_length, buf + cursor, 2);
                 cursor += 2;
 
-                printf("Slave proxy id: %d\n", slave_proxy_id);
-                printf("Execution time: %d\n", execution_time);
-                printf("Schema length: %d\n", schema_length);
-                printf("Error code: %d\n", error_code);
-                printf("Status vars length: %d\n", status_vars_length);
-
                 /*
                 string[$len]   status-vars
                 string[$len]   schema
@@ -148,10 +142,17 @@ int run_binlog_stream(server_info *info)
                 memcpy(query, buf + cursor, tmp_length);
                 cursor += tmp_length;
 
+#ifdef DEBUG
+                printf("Slave proxy id: %d\n", slave_proxy_id);
+                printf("Execution time: %d\n", execution_time);
+                printf("Schema length: %d\n", schema_length);
+                printf("Error code: %d\n", error_code);
+                printf("Status vars length: %d\n", status_vars_length);
+
                 printf("Status vars: %s\n", status_vars);
                 printf("Schema: %s\n", schema);
                 printf("Query: %s\n", query);
-
+#endif
                 break;
             case STOP_EVENT:
                 cursor += (length - 20);
@@ -167,9 +168,12 @@ int run_binlog_stream(server_info *info)
                 memcpy(next_file, buf + cursor, tmp_length);
                 *(next_file + tmp_length) = 0;
                 cursor += tmp_length;
+
+#ifdef DEBUG
                 printf("Tmp length: %d\n", tmp_length);
                 printf("Position: %ld\n", position);
                 printf("Next file name: %s\n", next_file);
+#endif
                 break;
             case INTVAR_EVENT:
                 cursor += (length - 20);
@@ -233,12 +237,14 @@ int run_binlog_stream(server_info *info)
                 memcpy(event_type_header_length, buf + cursor, tmp_length);
                 cursor += tmp_length;
 
+#ifdef DEBUG
                 printf("Tmp length: %d\n", tmp_length);
                 printf("Binlog version: %d\n", binlog_version);
                 printf("MySQL version: %s\n", mysql_version);
                 printf("Create timestamp: %d\n", create_timestamp);
                 printf("Event header length: %d\n", event_header_length);
                 printf("Event type header length: ...\n");
+#endif
 
                 break;
             case XID_EVENT:
