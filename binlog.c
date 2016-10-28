@@ -10,6 +10,20 @@
 #include "tools.h"
 #include "debug.h"
 
+char *event_types_post_header_length = NULL;
+
+// return specific event_type post_header length.
+// return -1 if event_types post header length array is not set.
+int get_post_header_length(int event_type)
+{
+    if (event_types_post_header_length == NULL) {
+        return -1;
+    } else {
+        return *(event_types_post_header_length + event_type - 1);
+    }
+}
+
+
 int run_binlog_stream(server_info *info)
 {
     char buf[1024];
@@ -20,7 +34,6 @@ int run_binlog_stream(server_info *info)
         // do parse binlog.
         cursor = 0;
         while (cursor < tmp) {
-            puts("======================================");
             int length = 0;
             char sequence_id = 0;
 
@@ -80,6 +93,7 @@ int run_binlog_stream(server_info *info)
 #endif
 
             int tmp_length = 0;
+            char post_header_length;
             switch (event_type) {
             case UNKNOWN_EVENT:
                 cursor += (length - 20);
@@ -87,7 +101,7 @@ int run_binlog_stream(server_info *info)
                 break;
             case START_EVENT_V3:
                 cursor += (length - 20);
-                printf("START_EVENT_V3\n");
+                printf("START_EVENT_V3, Header length: %02X\n", get_post_header_length(START_EVENT_V3));
                 break;
             case QUERY_EVENT:
                 /*
@@ -98,7 +112,7 @@ int run_binlog_stream(server_info *info)
                   if binlog-version ≥ 4:
                 2              status-vars length
                 */
-                printf("QUERY_EVENT\n");
+                printf("QUERY_EVENT, Header length: %02X\n", get_post_header_length(QUERY_EVENT));
                 uint32_t slave_proxy_id;
                 memcpy(&slave_proxy_id, buf + cursor, 4);
                 cursor += 4;
@@ -125,7 +139,6 @@ int run_binlog_stream(server_info *info)
                 string[EOF]    query
                 */
 
-
                 char *status_vars = malloc(sizeof(char) * status_vars_length);
                 memcpy(status_vars, buf + cursor, status_vars_length);
                 cursor += status_vars_length;
@@ -149,17 +162,17 @@ int run_binlog_stream(server_info *info)
                 printf("Error code: %d\n", error_code);
                 printf("Status vars length: %d\n", status_vars_length);
 
-                printf("Status vars: %s\n", status_vars);
-                printf("Schema: %s\n", schema);
+                printf("Status vars: %s\n", status_vars_length ? status_vars : "NULL");
+                printf("Schema: %s\n", schema_length ? schema : "NULL");
                 printf("Query: %s\n", query);
 #endif
                 break;
             case STOP_EVENT:
                 cursor += (length - 20);
-                printf("STOP_EVENT\n");
+                printf("STOP_EVENT, Header length: %02X\n", get_post_header_length(STOP_EVENT));
                 break;
             case ROTATE_EVENT:
-                printf("ROTATE_EVENT\n");
+                printf("ROTATE_EVENT, Header length: %02X\n", get_post_header_length(ROTATE_EVENT));
                 uint64_t position;
                 memcpy(&position, buf + cursor, 8);
                 cursor += 8;
@@ -177,46 +190,46 @@ int run_binlog_stream(server_info *info)
                 break;
             case INTVAR_EVENT:
                 cursor += (length - 20);
-                printf("INTVAR_EVENT\n");
+                printf("INTVAR_EVENT, Header length: %02X\n", get_post_header_length(INTVAR_EVENT));
                 break;
             case LOAD_EVENT:
                 cursor += (length - 20);
-                printf("LOAD_EVENT\n");
+                printf("LOAD_EVENT, Header length: %02X\n", get_post_header_length(LOAD_EVENT));
                 break;
             case SLAVE_EVENT:
                 cursor += (length - 20);
-                printf("SLAVE_EVENT\n");
+                printf("SLAVE_EVENT, Header length: %02X\n", get_post_header_length(SLAVE_EVENT));
                 break;
             case CREATE_FILE_EVENT:
                 cursor += (length - 20);
-                printf("CREATE_FILE_EVENT\n");
+                printf("CREATE_FILE_EVENT, Header length: %02X\n", get_post_header_length(CREATE_FILE_EVENT));
                 break;
             case APPEND_BLOCK_EVENT:
                 cursor += (length - 20);
-                printf("APPEND_BLOCK_EVENT\n");
+                printf("APPEND_BLOCK_EVENT, Header length: %02X\n", get_post_header_length(APPEND_BLOCK_EVENT));
                 break;
             case EXEC_LOAD_EVENT:
                 cursor += (length - 20);
-                printf("EXEC_LOAD_EVENT\n");
+                printf("EXEC_LOAD_EVENT, Header length: %02X\n", get_post_header_length(EXEC_LOAD_EVENT));
                 break;
             case DELETE_FILE_EVENT:
                 cursor += (length - 20);
-                printf("DELETE_FILE_EVENT\n");
+                printf("DELETE_FILE_EVENT, Header length: %02X\n", get_post_header_length(DELETE_FILE_EVENT));
                 break;
             case NEW_LOAD_EVENT:
                 cursor += (length - 20);
-                printf("NEW_LOAD_EVENT\n");
+                printf("NEW_LOAD_EVENT, Header length: %02X\n", get_post_header_length(NEW_LOAD_EVENT));
                 break;
             case RAND_EVENT:
                 cursor += (length - 20);
-                printf("RAND_EVENT\n");
+                printf("RAND_EVENT, Header length: %02X\n", get_post_header_length(RAND_EVENT));
                 break;
             case USER_VAR_EVENT:
                 cursor += (length - 20);
-                printf("USER_VAR_EVENT\n");
+                printf("USER_VAR_EVENT, Header length: %02X\n", get_post_header_length(USER_VAR_EVENT));
                 break;
             case FORMAT_DESCRIPTION_EVENT:
-                printf("FORMAT_DESCRIPTION_EVENT\n");
+                printf("FORMAT_DESCRIPTION_EVENT, Header length: %02X\n", get_post_header_length(FORMAT_DESCRIPTION_EVENT));
                 uint16_t binlog_version;
                 memcpy(&binlog_version, buf + cursor, 2);
                 cursor += 2;
@@ -233,8 +246,9 @@ int run_binlog_stream(server_info *info)
                 event_header_length = *(buf + cursor++);
 
                 tmp_length = sizeof(char) * (event_size - (19 + 2 + 50 + 4 + 1));
-                char *event_type_header_length = malloc(tmp_length);
-                memcpy(event_type_header_length, buf + cursor, tmp_length);
+                free(event_types_post_header_length);
+                event_types_post_header_length = realloc(event_types_post_header_length, tmp_length);
+                memcpy(event_types_post_header_length, buf + cursor, tmp_length);
                 cursor += tmp_length;
 
 #ifdef DEBUG
@@ -242,90 +256,91 @@ int run_binlog_stream(server_info *info)
                 printf("Binlog version: %d\n", binlog_version);
                 printf("MySQL version: %s\n", mysql_version);
                 printf("Create timestamp: %d\n", create_timestamp);
-                printf("Event header length: %d\n", event_header_length);
-                printf("Event type header length: ...\n");
+                printf("Event Header length: %02X\n", event_header_length);
+                printf("Event type header length: ...\n"); print_memory(event_types_post_header_length, tmp_length);
 #endif
 
                 break;
             case XID_EVENT:
                 cursor += (length - 20);
-                printf("XID_EVENT\n");
+                printf("XID_EVENT, Header length: %02X\n", get_post_header_length(XID_EVENT));
                 break;
             case BEGIN_LOAD_QUERY_EVENT:
                 cursor += (length - 20);
-                printf("BEGIN_LOAD_QUERY_EVENT\n");
+                printf("BEGIN_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(BEGIN_LOAD_QUERY_EVENT));
                 break;
             case EXECUTE_LOAD_QUERY_EVENT:
                 cursor += (length - 20);
-                printf("EXECUTE_LOAD_QUERY_EVENT\n");
+                printf("EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
                 break;
             case TABLE_MAP_EVENT:
                 cursor += (length - 20);
-                printf("TABLE_MAP_EVENT\n");
+                post_header_length = get_post_header_length(TABLE_MAP_EVENT);
+                printf("TABLE_MAP_EVENT, Header length: %02X\n", post_header_length);
                 break;
             case WRITE_ROWS_EVENTv0:
                 cursor += (length - 20);
-                printf("WRITE_ROWS_EVENTv0\n");
+                printf("WRITE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv0));
                 break;
             case UPDATE_ROWS_EVENTv0:
                 cursor += (length - 20);
-                printf("UPDATE_ROWS_EVENTv0\n");
+                printf("UPDATE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv0));
                 break;
             case DELETE_ROWS_EVENTv0:
                 cursor += (length - 20);
-                printf("DELETE_ROWS_EVENTv0\n");
+                printf("DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
                 break;
             case WRITE_ROWS_EVENTv1:
                 cursor += (length - 20);
-                printf("WRITE_ROWS_EVENTv1\n");
+                printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
                 break;
             case UPDATE_ROWS_EVENTv1:
                 cursor += (length - 20);
-                printf("UPDATE_ROWS_EVENTv1\n");
+                printf("UPDATE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv1));
                 break;
             case DELETE_ROWS_EVENTv1:
                 cursor += (length - 20);
-                printf("DELETE_ROWS_EVENTv1\n");
+                printf("DELETE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv1));
                 break;
             case INCIDENT_EVENT:
                 cursor += (length - 20);
-                printf("INCIDENT_EVENT\n");
+                printf("INCIDENT_EVENT, Header length: %02X\n", get_post_header_length(INCIDENT_EVENT));
                 break;
             case HEARTBEAT_EVENT:
                 cursor += (length - 20);
-                printf("HEARTBEAT_EVENT\n");
+                printf("HEARTBEAT_EVENT, Header length: %02X\n", get_post_header_length(HEARTBEAT_EVENT));
                 break;
             case IGNORABLE_EVENT:
                 cursor += (length - 20);
-                printf("IGNORABLE_EVENT\n");
+                printf("IGNORABLE_EVENT, Header length: %02X\n", get_post_header_length(IGNORABLE_EVENT));
                 break;
             case ROWS_QUERY_EVENT:
                 cursor += (length - 20);
-                printf("ROWS_QUERY_EVENT\n");
+                printf("ROWS_QUERY_EVENT, Header length: %02X\n", get_post_header_length(ROWS_QUERY_EVENT));
                 break;
             case WRITE_ROWS_EVENTv2:
                 cursor += (length - 20);
-                printf("WRITE_ROWS_EVENTv2\n");
+                printf("WRITE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv2));
                 break;
             case UPDATE_ROWS_EVENTv2:
                 cursor += (length - 20);
-                printf("UPDATE_ROWS_EVENTv2\n");
+                printf("UPDATE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv2));
                 break;
             case DELETE_ROWS_EVENTv2:
                 cursor += (length - 20);
-                printf("DELETE_ROWS_EVENTv2\n");
+                printf("DELETE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv2));
                 break;
             case GTID_EVENT:
                 cursor += (length - 20);
-                printf("GTID_EVENT\n");
+                printf("GTID_EVENT, Header length: %02X\n", get_post_header_length(GTID_EVENT));
                 break;
             case ANONYMOUS_GTID_EVENT:
                 cursor += (length - 20);
-                printf("ANONYMOUS_GTID_EVENT\n");
+                printf("ANONYMOUS_GTID_EVENT, Header length: %02X\n", get_post_header_length(ANONYMOUS_GTID_EVENT));
                 break;
             case PREVIOUS_GTIDS_EVENT:
                 cursor += (length - 20);
-                printf("PREVIOUS_GTIDS_EVENT\n");
+                printf("PREVIOUS_GTIDS_EVENT, Header length: %02X\n", get_post_header_length(PREVIOUS_GTIDS_EVENT));
                 break;
             default:
                 cursor += (length - 20);
