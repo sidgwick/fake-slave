@@ -274,9 +274,66 @@ int run_binlog_stream(server_info *info)
                 printf("EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
                 break;
             case TABLE_MAP_EVENT:
-                cursor += (length - 20);
                 post_header_length = get_post_header_length(TABLE_MAP_EVENT);
+
+                uint64_t table_id = 0;
+                if (post_header_length == 6) {
+                    memcpy(&table_id, buf + cursor, 4);
+                    cursor += 4;
+                } else {
+                    memcpy(&table_id, buf + cursor, 6);
+                    cursor += 6;
+                }
+
+                uint16_t flags;
+                memcpy(&flags, buf + cursor, 2);
+                cursor += 2;
+
+                // schema name length
+                uint8_t schema_name_length = *(buf + cursor++);
+                char *schema_name = malloc(sizeof(char) * schema_name_length);
+                memcpy(schema_name, buf + cursor, schema_name_length);
+                cursor += schema_name_length;
+
+                cursor++; // [00] byte
+
+                // table name length
+                uint8_t table_name_length = *(buf + cursor++);
+                char *table_name = malloc(sizeof(char) * table_name_length);
+                memcpy(table_name, buf + cursor, table_name_length);
+                cursor += table_name_length;
+
+                cursor++; // [00] byte
+
+                // lenenc-int     column-count
+                // string.var_len [length=$column-count] column-def
+                // lenenc-str     column-meta-def
+                // n              NULL-bitmask, length: (column-count + 8) / 7
+
+                int column_count = generate_length_encode_number(buf + cursor, &tmp_length);
+                cursor += tmp_length;
+
+                char *column_def = malloc(sizeof(char) * column_count);
+                memcpy(column_def, buf + cursor, column_count);
+                cursor += column_count;
+
+                char *column_meta_def = generate_length_encode_string(buf + cursor, &tmp_length);
+                cursor += tmp_length;
+
                 printf("TABLE_MAP_EVENT, Header length: %02X\n", post_header_length);
+                printf("Table id: %ld\n", table_id);
+                printf("Flags: "); print_memory((char *)&flags, 2);
+                printf("Schema name length: %d\n", schema_name_length);
+                printf("Schema name: %s\n", schema_name);
+                printf("Table name length: %d\n", table_name_length);
+                printf("Table name: %s\n", table_name);
+                printf("Column count: %d\n", column_count);
+                printf("Column def: "); print_memory(column_def, column_count);
+                printf("Column meta def: "); print_memory(column_meta_def, tmp_length);
+
+                tmp_length = (column_count + 7) / 8;
+                cursor += tmp_length;
+
                 break;
             case WRITE_ROWS_EVENTv0:
                 cursor += (length - 20);
