@@ -59,7 +59,29 @@ int print_server_info(server_info *info)
 
     return 0;
 }
+
+int print_binlog_event_header(struct event_header *header)
+{
+    printf("\e[32mBinlog event\e[0m\n");
+    printf("header.timestamp: %d\n", header->timestamp);
+    printf("header.event_type: %02X\n", header->event_type);
+    printf("header.event_size: %d\n", header->event_size);
+    printf("header.log_pos (the next event position): %d\n", header->log_pos);
+    printf("header.falgs: %d\n", header->flags); print_memory(header->flags, 2);
+
+    return 0;
+}
+
+int print_binlog_rotate_event(struct rotate_event *event)
+{
+    printf("ROTATE_EVENT, Header length: %02X\n", get_post_header_length(ROTATE_EVENT));
+    printf("Position: %ld\n", event->position);
+    printf("Next file name: %s\n", event->next_file);
+}
+
 #else
 int print_memory(char *mem, int len) {return 0;}
 int print_server_info(server_info *info) {return 0;}
+int print_binary_event_header(struct event_header *header) {return 0;}
+int print_binlog_rotate_event(struct rotate_event *event) {return 0;}
 #endif

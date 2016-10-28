@@ -40,6 +40,52 @@
 #define ANONYMOUS_GTID_EVENT 0x22
 #define PREVIOUS_GTIDS_EVENT 0x23
 
+// 4              timestamp
+// 1              event type
+// 4              server-id
+// 4              event-size
+// if binlog-version > 1:
+// 4              log pos
+// 2              flags
+struct event_header {
+    uint32_t timestamp;
+    char event_type;
+    uint32_t server_id;
+    uint32_t event_size;
+    uint32_t log_pos;
+    uint16_t flags;
+};
+
+/*
+Post-header
+      if binlog-version > 1 {
+    8              position
+      }
+Payload
+    string[p]      name of the next binlog
+*/
+struct rotate_event {
+    struct event_header header;
+    uint64_t position;
+    char *next_file;
+};
+
+/*
+2                binlog-version
+string[50]       mysql-server version
+4                create timestamp
+1                event header length
+string[p]        event type header lengths
+*/
+struct format_description_event {
+    struct event_header header;
+    uint16_t binlog_version;
+    char mysql_version[50];
+    uint32_t create_timestamp;
+    uint8_t event_header_length;
+    char *event_types_post_header_length;
+};
+
 int run_binlog_stream(server_info *);
 
 #endif
