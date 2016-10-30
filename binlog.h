@@ -86,6 +86,67 @@ struct format_description_event {
     char *event_types_post_header_length;
 };
 
+/*
+4              slave_proxy_id
+4              execution time
+1              schema length
+2              error-code
+  if binlog-version ≥ 4:
+2              status-vars length
+
+string[$len]   status-vars
+string[$len]   schema
+1              [00]
+string[EOF]    query
+
+*/
+struct query_event {
+    struct event_header header;
+    uint32_t slave_proxy_id;
+    uint32_t execution_time;
+    uint8_t schema_length;
+    uint16_t error_code;
+    uint16_t status_vars_length;
+    char *status_vars;
+    char *schema;
+    char *query;
+};
+
+/*
+post-header:
+    if post_header_len == 6 {
+  4              table id
+    } else {
+  6              table id
+    }
+  2              flags
+
+payload:
+  1              schema name length
+  string         schema name
+  1              [00]
+  1              table name length
+  string         table name
+  1              [00]
+  lenenc-int     column-count
+  string.var_len [length=$column-count] column-def
+  lenenc-str     column-meta-def
+  n              NULL-bitmask, length: (column-count + 8) / 7
+*/
+struct table_map_event {
+    struct event_header header;
+    uint64_t table_id;
+    uint16_t flags;
+    uint8_t schema_name_length;
+    uint8_t table_name_length;
+    int column_count;
+    char *schema_name;
+    char *table_name;
+    char *column_def;
+    char *column_meta_def;
+};
+
 int run_binlog_stream(server_info *);
+int get_post_header_length(int event_type);
 
 #endif

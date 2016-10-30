@@ -190,7 +190,7 @@ int send_binlog_dump_request(server_info *info)
     cursor += 1;
 
     // binlog postion
-    tmp = 659;
+    tmp = 4;
     memcpy(buf + cursor, &tmp, 4);
     cursor += 4;
 
@@ -205,7 +205,7 @@ int send_binlog_dump_request(server_info *info)
     cursor += 4;
 
     // binlog file name.
-    char binlog_filename[] = "mysql-bin.000028";
+    char binlog_filename[] = "mysql-bin.000007";
     strcpy(buf + cursor, binlog_filename);
     cursor += strlen(binlog_filename) + 1; // include the '\0' term null byte.
 
