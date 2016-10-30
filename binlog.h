@@ -146,6 +146,9 @@ struct table_map_event {
     char *column_meta_def;
 };
 
+struct write_rows_event_v1 {
+};
+
 int run_binlog_stream(server_info *);
 int get_post_header_length(int event_type);
 
