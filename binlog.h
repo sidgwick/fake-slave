@@ -146,7 +146,20 @@ struct table_map_event {
     char *column_meta_def;
 };
 
+struct column_data {
+        // string.var_len       nul-bitmap, length (bits set in 'columns-present-bitmap1'+7)/8
+        // string.var_len       value of each field as defined in table-map
+        //   if UPDATE_ROWS_EVENTv1 or v2 {
+        // string.var_len       nul-bitmap, length (bits set in 'columns-present-bitmap2'+7)/8
+        // string.var_len       value of each field as defined in table-map
+};
+
 struct write_rows_event_v1 {
+    uint64_t table_id;
+    uint16_t flags;
+    int column_count;
+    char *columns_present_bitmap1;
+    struct column_data *data;
 };
 
 int run_binlog_stream(server_info *);
