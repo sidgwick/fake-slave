@@ -35,15 +35,15 @@ int generate_length_encode_number(const char *buf, int *length)
 // assume length less than 251, just for now
 char *generate_length_encode_string(const char *buf, int *length)
 {
-    uint8_t len = *buf++;
     char *string;
+    int prefix_num_len;
+    int len = generate_length_encode_number(buf, &prefix_num_len);
 
-    *length = 0;
     string = malloc(sizeof(char) * len + 1); // append a '\0' byte.
     memset(string, 0, len + 1);
-    memcpy(string, buf, len);
+    memcpy(string, buf + *length, len);
 
-    *length = len + 1;
+    *length = prefix_num_len + len + 1;
 
     return string;
 }
