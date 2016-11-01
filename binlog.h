@@ -155,6 +155,8 @@ struct column_data {
 };
 
 struct write_rows_event_v1 {
+    struct event_header header;
+    struct table_map_event table_map;
     uint64_t table_id;
     uint16_t flags;
     int column_count;

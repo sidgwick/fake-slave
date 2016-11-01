@@ -38,10 +38,11 @@ char *generate_length_encode_string(const char *buf, int *length)
     char *string;
     int prefix_num_len;
     int len = generate_length_encode_number(buf, &prefix_num_len);
+    // prefix_num_len++;
 
     string = malloc(sizeof(char) * len + 1); // append a '\0' byte.
     memset(string, 0, len + 1);
-    memcpy(string, buf + *length, len);
+    memcpy(string, buf + prefix_num_len, len);
 
     *length = prefix_num_len + len + 1;
 

@@ -202,63 +202,95 @@ int table_map_event(struct table_map_event *ev, char *buf)
 // WRITE ROWS EVENT V1
 int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
 {
+    int post_header_length = get_post_header_length(WRITE_ROWS_EVENTv1);
+    int cursor = 0;
+    int tmp;
 
-
-
-
-/*
-    post_header_length = get_post_header_length(WRITE_ROWS_EVENTv1);
-    char *body = buf + cursor;
-
-    uint64_t table_id = 0;
     if (post_header_length == 6) {
-        memcpy(&table_id, buf + cursor, 4);
+        memcpy(&ev->table_id, buf + cursor, 4);
         cursor += 4;
     } else {
-        memcpy(&table_id, buf + cursor, 6);
+        memcpy(&ev->table_id, buf + cursor, 6);
         cursor += 6;
     }
 
-    uint16_t flags;
-    memcpy(&flags, buf + cursor, 2);
+    memcpy(&ev->flags, buf + cursor, 2);
     cursor += 2;
 
-    int column_count = generate_length_encode_number(buf + cursor, &tmp_length);
-    cursor += tmp_length;
+    ev->column_count = generate_length_encode_number(buf + cursor, &tmp);
+    cursor += tmp;
 
-    tmp_length = (column_count + 7) / 8;
-    char *columns_present_bitmap1 = malloc(sizeof(char) * tmp_length);
-    memcpy(columns_present_bitmap1, buf + cursor, tmp_length);
-    cursor += tmp_length;
+    tmp = (ev->column_count + 7) / 8;
+    ev->columns_present_bitmap1 = malloc(sizeof(char) * tmp);
+    memcpy(ev->columns_present_bitmap1, buf + cursor, tmp);
+    cursor += tmp;
 
-    printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
-    printf("Table id: %ld\n", table_id);
-    printf("Flags: ");print_memory((char *)&flags, 2);
-    printf("Column count: %d\n", column_count);
+    printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", post_header_length);
+    printf("Table id: %ld\n", ev->table_id);
+    printf("Flags: ");print_memory((char *)&ev->flags, 2);
+    printf("Column count: %d\n", ev->column_count);
 
     // rows.
-    while ((buf + cursor - body) < event_size) {
+    while (cursor < (ev->header.event_size - 19)) {
         // string.var_len       nul-bitmap, length (bits set in 'columns-present-bitmap1'+7)/8
         // string.var_len       value of each field as defined in table-map
         //   if UPDATE_ROWS_EVENTv1 or v2 {
         // string.var_len       nul-bitmap, length (bits set in 'columns-present-bitmap2'+7)/8
         // string.var_len       value of each field as defined in table-map
         //   }
-        tmp_length = (column_count + 7) / 8;
-        char *bit_map = malloc(sizeof(char) * tmp_length);
-        memcpy(bit_map, buf + cursor, tmp_length);
-        cursor += tmp_length;
+        tmp = (ev->column_count + 7) / 8;
+        char *bit_map = malloc(sizeof(char) * tmp);
+        memcpy(bit_map, buf + cursor, tmp);
+        cursor += tmp;
 
-        printf("Bit map:"); print_memory(bit_map, tmp_length);
+        printf("Bit map:"); print_memory(bit_map, tmp);
+
+        // loop to get column value
+        for (int i = 0; i < ev->column_count; i++) {
+            unsigned char column_def = *(ev->table_map.column_def + i);
+            printf("Column def: %02x\n", column_def);
+            print_memory((char *)buf + cursor, 20);
+
+            switch (column_def) {
+            case MYSQL_TYPE_LONG:
+            case MYSQL_TYPE_INT24:
+                {
+                    // long int.
+                    int iv = 0;
+                    memcpy(&iv, buf + cursor, 4);
+                    cursor += 4;
+
+                    printf("col %d, long int value: %d\n", i, iv);
+                }
+                break;
+            case MYSQL_TYPE_STRING:
+            case MYSQL_TYPE_VARCHAR:
+            case MYSQL_TYPE_VAR_STRING:
+            case MYSQL_TYPE_ENUM:
+            case MYSQL_TYPE_SET:
+            case MYSQL_TYPE_LONG_BLOB:
+            case MYSQL_TYPE_MEDIUM_BLOB:
+            case MYSQL_TYPE_BLOB:
+            case MYSQL_TYPE_TINY_BLOB:
+            case MYSQL_TYPE_GEOMETRY:
+            case MYSQL_TYPE_BIT:
+            case MYSQL_TYPE_DECIMAL:
+            case MYSQL_TYPE_NEWDECIMAL:
+                {
+                    // varchar
+                    int tmp = 0;
+                    char *s = generate_length_encode_string(buf + cursor, &tmp);
+                    cursor += tmp;
+
+                    printf("col %d, varchar value: %s(%d)\n", i, s, tmp);
+                }
+                break;
+            default:
+                printf("Other type\n");
+            }
+        }
 
     }
-*/
-
-
-
-
-
-
 
     return 0;
 }
@@ -363,6 +395,7 @@ int run_binlog_stream(server_info *info)
                 printf("EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
                 break;
             case TABLE_MAP_EVENT:
+                table_map_ev.header = ev_header;
                 table_map_event(&table_map_ev, buf + cursor);
                 break;
             case WRITE_ROWS_EVENTv0:
@@ -375,6 +408,8 @@ int run_binlog_stream(server_info *info)
                 printf("DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
                 break;
             case WRITE_ROWS_EVENTv1:
+                write_rows_ev_v1.header = ev_header;
+                write_rows_ev_v1.table_map = table_map_ev;
                 write_rows_event_v1(&write_rows_ev_v1, buf + cursor);
                 printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
                 break;
