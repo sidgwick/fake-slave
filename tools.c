@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-int generate_length_encode_number(const char *buf, int *length)
+int get_length_encode_number(const char *buf, int *length)
 {
     int tmp = 0;
     uint64_t data = 0;
@@ -33,11 +33,11 @@ int generate_length_encode_number(const char *buf, int *length)
 
 
 // assume length less than 251, just for now
-char *generate_length_encode_string(const char *buf, int *length)
+char *get_length_encode_string(const char *buf, int *length)
 {
     char *string;
     int prefix_num_len;
-    int len = generate_length_encode_number(buf, &prefix_num_len);
+    int len = get_length_encode_number(buf, &prefix_num_len);
     // prefix_num_len++;
 
     string = malloc(sizeof(char) * len + 1); // append a '\0' byte.

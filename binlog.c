@@ -179,14 +179,14 @@ int table_map_event(struct table_map_event *ev, char *buf)
 
     cursor++; // [00] byte
 
-    ev->column_count = generate_length_encode_number(buf + cursor, &tmp);
+    ev->column_count = get_length_encode_number(buf + cursor, &tmp);
     cursor += tmp;
 
     ev->column_def = malloc(sizeof(char) * ev->column_count);
     memcpy(ev->column_def, buf + cursor, ev->column_count);
     cursor += ev->column_count;
 
-    ev->column_meta_def = generate_length_encode_string(buf + cursor, &tmp);
+    ev->column_meta_def = get_length_encode_string(buf + cursor, &tmp);
     cursor += tmp;
 
     tmp = (ev->column_count + 7) / 8;
@@ -217,7 +217,7 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
     memcpy(&ev->flags, buf + cursor, 2);
     cursor += 2;
 
-    ev->column_count = generate_length_encode_number(buf + cursor, &tmp);
+    ev->column_count = get_length_encode_number(buf + cursor, &tmp);
     cursor += tmp;
 
     tmp = (ev->column_count + 7) / 8;
@@ -279,7 +279,7 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
                 {
                     // varchar
                     int tmp = 0;
-                    char *s = generate_length_encode_string(buf + cursor, &tmp);
+                    char *s = get_length_encode_string(buf + cursor, &tmp);
                     cursor += tmp;
 
                     printf("col %d, varchar value: %s(%d)\n", i, s, tmp);

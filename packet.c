@@ -20,10 +20,10 @@ int parse_ok_packet(const char *buf, ok_packet *pkt)
 
     // packet body.
     pkt->header = *(buf + cursor++);
-    pkt->affected_rows = generate_length_encode_number(buf + cursor, &grow);
+    pkt->affected_rows = get_length_encode_number(buf + cursor, &grow);
     cursor += grow;
 
-    pkt->last_insert_id = generate_length_encode_number(buf + cursor, &grow);
+    pkt->last_insert_id = get_length_encode_number(buf + cursor, &grow);
     cursor += grow;
 
     // we use CLIENT_PROTOCOL_41
@@ -77,27 +77,27 @@ int parse_column_define_packet(const char *buf)
     int string_length;
 
     char *catalog;
-    catalog = generate_length_encode_string(buf, &string_length);
+    catalog = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     char *schema;
-    schema = generate_length_encode_string(buf, &string_length);
+    schema = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     char *table;
-    table = generate_length_encode_string(buf, &string_length);
+    table = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     char *org_table;
-    org_table = generate_length_encode_string(buf, &string_length);
+    org_table = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     char *name;
-    name = generate_length_encode_string(buf, &string_length);
+    name = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     char *org_name;
-    org_name = generate_length_encode_string(buf, &string_length);
+    org_name = get_length_encode_string(buf, &string_length);
     buf += string_length;
 
     buf += 1; // skip byte length of content fixed-length fields
