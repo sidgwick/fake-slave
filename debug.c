@@ -61,14 +61,17 @@ int print_server_info(server_info *info)
     return 0;
 }
 
-int print_binlog_event_header(struct event_header *header)
+int print_binlog_event_header(struct event_header *h)
 {
+    char flag1 = *((char *)&h->flags);
+    char flag2 = *((char *)&h->flags + 1);
+
     printf("\e[32mBinlog event\e[0m\n");
-    printf("header.timestamp: %d\n", header->timestamp);
-    printf("header.event_type: %02X\n", header->event_type);
-    printf("header.event_size: %d\n", header->event_size);
-    printf("header.log_pos (the next event position): %d\n", header->log_pos);
-    printf("header.falgs: %d\n", header->flags); print_memory((char *)&header->flags, 2);
+    puts("+---------------+--------------+--------------+---------------+---------+");
+    puts("|   timestamp   |  event_type  |  event_size  | next log pos  |  flags  |");
+    puts("+---------------+--------------+--------------+---------------+---------+");
+    printf("|  %11d  |          %02x  |  %10d  | %12d  |  %02x %02x  |\n", h->timestamp, h->event_type, h->event_size, h->log_pos, flag1, flag2);
+    puts("+---------------+--------------+--------------+---------------+---------+");
 
     return 0;
 }
