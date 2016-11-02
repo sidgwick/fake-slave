@@ -205,7 +205,7 @@ int send_binlog_dump_request(server_info *info)
     cursor += 4;
 
     // binlog file name.
-    char binlog_filename[] = "mysql-bin.000028";
+    char binlog_filename[] = "mysql-bin.000001";
     strcpy(buf + cursor, binlog_filename);
     cursor += strlen(binlog_filename) + 1; // include the '\0' term null byte.
 
