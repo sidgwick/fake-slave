@@ -359,9 +359,8 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         {
             uint64_t xid = 0;
             memcpy(&xid, buf, 8);
-            printf("XID_EVENT: xid = %ld\n", xid);
+            printf("XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
         }
-        printf("XID_EVENT, Header length: %02X\n", get_post_header_length(XID_EVENT));
         break;
     case BEGIN_LOAD_QUERY_EVENT:
         printf("BEGIN_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(BEGIN_LOAD_QUERY_EVENT));
@@ -453,10 +452,7 @@ int run_binlog_stream(server_info *info)
             cursor += 4;
 
 #ifdef DEBUG
-            printf("\e[31mBinlog packet\e[0m\n");
-            printf("Packet length: %d\n", length);
-            printf("Sequence ID: %d\n", sequence_id);
-            if (sequence_id >= 14) { print_memory(buf + cursor + 4, length - 1); }
+            printf("\e[31mBinlog packet\e[0m: length = %04d, sequence_id = %04d\n", length, sequence_id);
 #endif
             // skip a 00-OK byte
             cursor += 1;
