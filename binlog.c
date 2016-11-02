@@ -298,13 +298,13 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
 int run_binlog_stream(server_info *info)
 {
     char buf[1024];
-    int tmp =0;
+    int rbuflen = 0;
     int cursor = 0;
 
-    while ((tmp = read(info->sockfd, buf + cursor, 1024 - cursor)) != -1) {
+    while ((rbuflen += read(info->sockfd, buf + rbuflen, 1024 - rbuflen)) != -1) {
         // do parse binlog.
         cursor = 0;
-        while (cursor < tmp) {
+        while (cursor < rbuflen) {
             int length = 0; // packet length
             char sequence_id = 0; // packet sequence id
 
@@ -386,6 +386,11 @@ int run_binlog_stream(server_info *info)
                 event_types_post_header_length = fmt_des_ev.event_types_post_header_length;
                 break;
             case XID_EVENT:
+                {
+                    uint64_t xid = 0;
+                    memcpy(&xid, buf + cursor, 8);
+                    printf("XID_EVENT: xid = %ld\n", xid);
+                }
                 printf("XID_EVENT, Header length: %02X\n", get_post_header_length(XID_EVENT));
                 break;
             case BEGIN_LOAD_QUERY_EVENT:
@@ -458,7 +463,8 @@ int run_binlog_stream(server_info *info)
             puts("======================================");
         }
 
-        memcpy(buf, buf + cursor, 1024 - cursor);
+        memcpy(buf, buf + cursor, rbuflen - cursor);
+        rbuflen -= cursor;
     }
 
     return 0;
