@@ -444,7 +444,7 @@ int run_binlog_stream(server_info *info)
         while (cursor + (4 + 19 + 1) < rbuflen) {
             printf("\e[34mCUROSR\e[0m: %d\n", cursor);
             int length = 0; // packet length
-            char sequence_id = 0; // packet sequence id
+            unsigned char sequence_id = 0; // packet sequence id
 
             memcpy(&length, buf + cursor, 3);
             sequence_id = *(buf + cursor + 3);
@@ -452,7 +452,7 @@ int run_binlog_stream(server_info *info)
             cursor += 4;
 
 #ifdef DEBUG
-            printf("\e[31mBinlog packet\e[0m: length = %04d, sequence_id = %04d\n", length, sequence_id);
+            printf("\e[31mBinlog packet\e[0m: length = %04d, sequence_id = %u\n", length, sequence_id);
 #endif
             // skip a 00-OK byte
             cursor += 1;
