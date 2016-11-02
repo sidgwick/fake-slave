@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define BUF_SIZE 1024
+
 typedef struct {
     int sockfd; // server socket
     uint8_t protocol_version;

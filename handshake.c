@@ -18,7 +18,7 @@
 static int parse_handshake_body(char *buf, int length, int sequence_id, server_info *info)
 {
     char *buf_start = buf;
-    char auth_plugin_data[1024];
+    char auth_plugin_data[BUF_SIZE];
 
     // Protocol version
     info->protocol_version = *buf++;
@@ -110,7 +110,7 @@ char *calculate_password_sha1(const server_info *info, const char *password, uns
 
 static int response_handshake_to_server(server_info *info)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     int tmp;
     int cursor = 4;
     int sockfd = info->sockfd;
@@ -140,7 +140,7 @@ static int response_handshake_to_server(server_info *info)
 
     // hash password
     unsigned char *password_hash;
-    password_hash = malloc(sizeof(char) * 1024);
+    password_hash = malloc(sizeof(char) * BUF_SIZE);
     calculate_password_sha1(info, "1111", password_hash);
     // CLIENT_SECURE_CONNECTION set, password hash length is the SHA_DIGEST_LENGTH.
     *(buf + cursor) = SHA_DIGEST_LENGTH;
@@ -171,7 +171,7 @@ static int response_handshake_to_server(server_info *info)
     write(sockfd, buf, cursor);
 
     // make soure we login success
-    if ((tmp = read(sockfd, buf, 1024)) == -1) {
+    if ((tmp = read(sockfd, buf, BUF_SIZE)) == -1) {
         perror("Can not read from server: ");
         exit(1);
     }
@@ -196,10 +196,10 @@ int handshake_with_server(server_info *server_info) {
     uint32_t length = 0;
     uint32_t sequence_id = 0;
     int datalen;
-    char buf[1024];
+    char buf[BUF_SIZE];
 
     // read the first packet from mysql server.
-    datalen = read(server_info->sockfd, buf, 1024);
+    datalen = read(server_info->sockfd, buf, BUF_SIZE);
     if (datalen == -1) {
         printf("Unable to read from the server, server socket is: %d", server_info->sockfd);
         perror(NULL);

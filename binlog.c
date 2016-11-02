@@ -248,8 +248,7 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
         // loop to get column value
         for (int i = 0; i < ev->column_count; i++) {
             unsigned char column_def = *(ev->table_map.column_def + i);
-            printf("Column def: %02x\n", column_def);
-            print_memory((char *)buf + cursor, 20);
+            printf("Column def: %02x, ID: %d value: ", column_def, i);
 
             switch (column_def) {
             case MYSQL_TYPE_LONG:
@@ -260,7 +259,7 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
                     memcpy(&iv, buf + cursor, 4);
                     cursor += 4;
 
-                    printf("col %d, long int value: %d\n", i, iv);
+                    printf("LONG %d\n", iv);
                 }
                 break;
             case MYSQL_TYPE_STRING:
@@ -282,7 +281,7 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
                     char *s = get_length_encode_string(buf + cursor, &tmp);
                     cursor += tmp;
 
-                    printf("col %d, varchar value: %s(%d)\n", i, s, tmp);
+                    printf("VARCHAR %s(%d)\n", s, tmp);
                 }
                 break;
             default:
@@ -297,11 +296,11 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
 
 int run_binlog_stream(server_info *info)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     int rbuflen = 0;
     int cursor = 0;
 
-    while ((rbuflen += read(info->sockfd, buf + rbuflen, 1024 - rbuflen)) != -1) {
+    while ((rbuflen += read(info->sockfd, buf + rbuflen, BUF_SIZE - rbuflen)) != -1) {
         // do parse binlog.
         cursor = 0;
         while (cursor < rbuflen) {

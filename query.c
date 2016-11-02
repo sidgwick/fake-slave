@@ -13,7 +13,7 @@
 
 int send_query(server_info *info, const char *sql)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     int cursor = 4;
     int tmp;
 
@@ -40,11 +40,11 @@ int send_query(server_info *info, const char *sql)
 
 int fetch_query_row(server_info *info)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     char *cursor;
     int datalen;
     // get response from server.
-    if ((datalen = read(info->sockfd, buf, 1024)) == -1) {
+    if ((datalen = read(info->sockfd, buf, BUF_SIZE)) == -1) {
         perror("Unable to read from server: ");
         exit(0);
     }
@@ -121,7 +121,7 @@ int checksum_binlog(server_info *info)
 
 int register_as_slave(server_info *info)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     int cursor = 4;
     int tmp = 0;
 
@@ -168,7 +168,7 @@ int register_as_slave(server_info *info)
     write(info->sockfd, buf, cursor + 4);
 
     // expect a OK packet here.
-    read(info->sockfd, buf, 1024);
+    read(info->sockfd, buf, BUF_SIZE);
     ok_packet ok_pkt;
     if (parse_ok_packet(buf, &ok_pkt) != 0x00) {
         // ERR packet.
@@ -181,7 +181,7 @@ int register_as_slave(server_info *info)
 
 int send_binlog_dump_request(server_info *info)
 {
-    char buf[1024];
+    char buf[BUF_SIZE];
     int cursor = 4;
     int tmp;
 
