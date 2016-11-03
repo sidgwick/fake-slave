@@ -190,6 +190,8 @@ int table_map_event(struct table_map_event *ev, const char *buf)
     cursor += tmp;
 
     tmp = (ev->column_count + 7) / 8;
+    ev->null_bitmask = malloc(sizeof(char) * tmp);
+    memcpy(ev->null_bitmask, buf + cursor, tmp);
     cursor += tmp;
 
 #ifdef DEBUG

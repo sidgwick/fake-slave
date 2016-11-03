@@ -144,6 +144,7 @@ struct table_map_event {
     char *table_name;
     char *column_def;
     char *column_meta_def;
+    char *null_bitmask;
 };
 
 struct column_data {
