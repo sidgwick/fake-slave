@@ -388,7 +388,36 @@ int rows_event(struct rows_event *ev, const char *buf)
     }
 
 #ifdef DEBUG
-    printf("ROWS_EVENTv1, Header length: %02X\n", post_header_length);
+    switch (ev->header.event_type) {
+    case WRITE_ROWS_EVENTv0:
+        printf("WRITE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv0));
+        break;
+    case UPDATE_ROWS_EVENTv0:
+        printf("UPDATE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv0));
+        break;
+    case DELETE_ROWS_EVENTv0:
+        printf("DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
+        break;
+    case WRITE_ROWS_EVENTv1:
+        printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
+        break;
+    case UPDATE_ROWS_EVENTv1:
+        printf("UPDATE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv1));
+        break;
+    case DELETE_ROWS_EVENTv1:
+        printf("DELETE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv1));
+        break;
+    case WRITE_ROWS_EVENTv2:
+        printf("WRITE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv2));
+        break;
+    case UPDATE_ROWS_EVENTv2:
+        printf("UPDATE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv2));
+        break;
+    case DELETE_ROWS_EVENTv2:
+        printf("DELETE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv2));
+        break;
+    }
+
     printf("Table id: %ld\n", ev->table_id);
     printf("Flags: ");print_memory((char *)&ev->flags, 2);
     printf("Column count: %d\n", ev->column_count);
@@ -481,28 +510,17 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         table_map_event(&table_map_ev, buf);
         break;
     case WRITE_ROWS_EVENTv0:
-        printf("WRITE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv0));
-        break;
     case UPDATE_ROWS_EVENTv0:
-        printf("UPDATE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv0));
-        break;
     case DELETE_ROWS_EVENTv0:
-        printf("DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
-        break;
     case WRITE_ROWS_EVENTv1:
-        rows_ev.header = ev_header;
-        rows_ev.table_map = table_map_ev;
-        rows_event(&rows_ev, buf);
-        printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
-        break;
     case UPDATE_ROWS_EVENTv1:
+    case DELETE_ROWS_EVENTv1:
+    case WRITE_ROWS_EVENTv2:
+    case UPDATE_ROWS_EVENTv2:
+    case DELETE_ROWS_EVENTv2:
         rows_ev.header = ev_header;
         rows_ev.table_map = table_map_ev;
         rows_event(&rows_ev, buf);
-        printf("UPDATE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv1));
-        break;
-    case DELETE_ROWS_EVENTv1:
-        printf("DELETE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv1));
         break;
     case INCIDENT_EVENT:
         printf("INCIDENT_EVENT, Header length: %02X\n", get_post_header_length(INCIDENT_EVENT));
@@ -515,15 +533,6 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         break;
     case ROWS_QUERY_EVENT:
         printf("ROWS_QUERY_EVENT, Header length: %02X\n", get_post_header_length(ROWS_QUERY_EVENT));
-        break;
-    case WRITE_ROWS_EVENTv2:
-        printf("WRITE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv2));
-        break;
-    case UPDATE_ROWS_EVENTv2:
-        printf("UPDATE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv2));
-        break;
-    case DELETE_ROWS_EVENTv2:
-        printf("DELETE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv2));
         break;
     case GTID_EVENT:
         printf("GTID_EVENT, Header length: %02X\n", get_post_header_length(GTID_EVENT));
