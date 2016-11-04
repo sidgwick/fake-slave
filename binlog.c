@@ -201,7 +201,7 @@ int table_map_event(struct table_map_event *ev, const char *buf)
     return cursor;
 }
 
-int get_column_meta_def(struct table_map_event ev, int col_num)
+char *get_column_meta_def(struct table_map_event ev, int col_num)
 {
     unsigned char column_def;
     char *meta = ev.column_meta_def;
@@ -243,9 +243,9 @@ int get_column_meta_def(struct table_map_event ev, int col_num)
         }
 
         if (col_num == i) {
+           // target column
            if (meta_len > 0) {
-               // target column. print its meta def
-               printf("META DEF: ");print_memory(meta + cursor, meta_len);
+               return meta + cursor;
            }
 
            break;
@@ -254,7 +254,7 @@ int get_column_meta_def(struct table_map_event ev, int col_num)
         cursor += meta_len;
     }
 
-    return 0;
+    return NULL;
 }
 
 // WRITE ROWS EVENT V1
@@ -310,9 +310,6 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
             unsigned char column_def = *(ev->table_map.column_def + i);
             printf("Column def: %02x, ID: %d value: ", column_def, i);
 
-            // column meta info
-            get_column_meta_def(ev->table_map, i);
-
             switch (column_def) {
             case MYSQL_TYPE_LONG:
             case MYSQL_TYPE_INT24:
@@ -341,10 +338,25 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
                 {
                     // varchar
                     int tmp = 0;
-                    char *s = get_length_encode_string(buf + cursor, &tmp);
-                    cursor += tmp;
+                    char *val;
+                    // column meta info
+                    char *meta = get_column_meta_def(ev->table_map, i);
+                    unsigned char prefix_num_length = *(meta + 1); // 1st byte is type, 2nd byte is length.
 
-                    printf("VARCHAR %s(%d)\n", s, tmp);
+                    if (prefix_num_length > 0) {
+                        // length of length encode string #mysql bug 37426#
+                        memcpy(&tmp, buf + cursor, prefix_num_length);
+                        cursor += prefix_num_length;
+
+                        val = malloc(sizeof(char) * tmp);
+                        memcpy(val, buf + cursor, tmp);
+                        cursor += tmp;
+                    } else {
+                        val = get_length_encode_string(buf + cursor, &tmp);
+                        cursor += tmp;
+                    }
+
+                    printf("VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
                 }
                 break;
             default:
