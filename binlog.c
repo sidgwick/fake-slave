@@ -201,6 +201,62 @@ int table_map_event(struct table_map_event *ev, const char *buf)
     return cursor;
 }
 
+int get_column_meta_def(struct table_map_event ev, int col_num)
+{
+    unsigned char column_def;
+    char *meta = ev.column_meta_def;
+    int cursor = 0;
+    int meta_len = 0;
+
+    for (int i = 0; i < ev.column_count; i++) {
+        column_def = *(ev.column_def + i);
+
+        // skip the column meta def before the target
+        switch (column_def) {
+        case MYSQL_TYPE_STRING:
+        case MYSQL_TYPE_VAR_STRING:
+        case MYSQL_TYPE_VARCHAR:
+        case MYSQL_TYPE_DECIMAL:
+        case MYSQL_TYPE_NEWDECIMAL:
+        case MYSQL_TYPE_ENUM:
+        case MYSQL_TYPE_SET:
+            meta_len = 2;
+            break;
+        case MYSQL_TYPE_BLOB:
+        case MYSQL_TYPE_DOUBLE:
+        case MYSQL_TYPE_FLOAT:
+            meta_len = 1;
+            break;
+        case MYSQL_TYPE_BIT:
+        case MYSQL_TYPE_DATE:
+        case MYSQL_TYPE_DATETIME:
+        case MYSQL_TYPE_TIMESTAMP:
+        case MYSQL_TYPE_TINY:
+        case MYSQL_TYPE_SHORT:
+        case MYSQL_TYPE_INT24:
+        case MYSQL_TYPE_LONG:
+        case MYSQL_TYPE_LONGLONG:
+        case MYSQL_TYPE_TIME:
+        default:
+            meta_len = 0;
+            break;
+        }
+
+        if (col_num == i) {
+           if (meta_len > 0) {
+               // target column. print its meta def
+               printf("META DEF: ");print_memory(meta + cursor, meta_len);
+           }
+
+           break;
+        }
+
+        cursor += meta_len;
+    }
+
+    return 0;
+}
+
 // WRITE ROWS EVENT V1
 int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
 {
@@ -227,10 +283,12 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
     memcpy(ev->columns_present_bitmap1, buf + cursor, tmp);
     cursor += tmp;
 
+#ifdef DEBUG
     printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", post_header_length);
     printf("Table id: %ld\n", ev->table_id);
     printf("Flags: ");print_memory((char *)&ev->flags, 2);
     printf("Column count: %d\n", ev->column_count);
+#endif
 
     // rows.
     while (cursor < (ev->header.event_size - 19)) {
@@ -251,6 +309,9 @@ int write_rows_event_v1(struct write_rows_event_v1 *ev, const char *buf)
         for (int i = 0; i < ev->column_count; i++) {
             unsigned char column_def = *(ev->table_map.column_def + i);
             printf("Column def: %02x, ID: %d value: ", column_def, i);
+
+            // column meta info
+            get_column_meta_def(ev->table_map, i);
 
             switch (column_def) {
             case MYSQL_TYPE_LONG:
