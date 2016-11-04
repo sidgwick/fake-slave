@@ -155,13 +155,14 @@ struct column_data {
         // string.var_len       value of each field as defined in table-map
 };
 
-struct write_rows_event_v1 {
+struct rows_event {
     struct event_header header;
     struct table_map_event table_map;
     uint64_t table_id;
     uint16_t flags;
     int column_count;
     char *columns_present_bitmap1;
+    char *columns_present_bitmap2;
     struct column_data *data;
 };
 
