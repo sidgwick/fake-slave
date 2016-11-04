@@ -69,7 +69,7 @@ int set_length_encode_integer(char *buf, int num, int *length)
 int int_length(int a)
 {
     int i = 1;
-    while ((a = a % 10) > 10) {
+    while ((a /= 10)) {
         i++;
     }
 

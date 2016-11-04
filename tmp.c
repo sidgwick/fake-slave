@@ -10,15 +10,15 @@ int bin2decimal(const uchar *from, decimal_t *to, int precision, int scale)
   int frac0x = scale - frac0 * DIG_PER_DEC1,
   int intg1 = intg0 + (intg0x > 0),
   int frac1 = frac0 + (frac0x > 0);
-  dec1 *buf=to->buf, mask=(*from & 0x80) ? 0 : -1;
+  dec1 *buf = to->buf, mask = (*from & 0x80) ? 0 : -1;
   const uchar *stop;
   uchar *d_copy;
-  int bin_size= decimal_bin_size(precision, scale);
+  int bin_size = decimal_bin_size(precision, scale);
 
   sanity(to);
   d_copy= (uchar*) my_alloca(bin_size);
   memcpy(d_copy, from, bin_size);
-  d_copy[0]^= 0x80;
+  d_copy[0] ^= 0x80;
   from= d_copy;
 
   FIX_INTG_FRAC_ERROR(to->len, intg1, frac1, error);
