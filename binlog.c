@@ -243,12 +243,12 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
         }
 
         if (col_num == i) {
-           // target column
-           if (meta_len > 0) {
-               return meta + cursor;
-           }
+            // target column
+            if (meta_len > 0) {
+                return meta + cursor;
+            }
 
-           break;
+            break;
         }
 
         cursor += meta_len;
