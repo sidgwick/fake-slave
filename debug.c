@@ -6,7 +6,7 @@
 #include "binlog.h"
 
 #ifdef DEBUG
-int print_memory(char *mem, int len)
+int print_memory(const char *mem, int len)
 {
     int i = 0;
 

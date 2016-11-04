@@ -4,7 +4,7 @@
 #include "client.h"
 #include "binlog.h"
 
-int print_memory(char *mem, int len);
+int print_memory(const char *mem, int len);
 int print_server_info(server_info *info);
 int print_binlog_event_header(struct event_header *header);
 int print_binlog_rotate_event(struct rotate_event *event);

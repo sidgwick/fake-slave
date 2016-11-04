@@ -10,6 +10,16 @@
 #include "tools.h"
 #include "debug.h"
 
+double PREFIX_DOT(int a)
+{
+    int i = 1;
+    while ((a = a % 10) > 10) {
+        i++;
+    }
+
+    return a * (1 / (10 * i));
+}
+
 char *event_types_post_header_length = NULL;
 
 // return specific event_type post_header length.
@@ -276,6 +286,30 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             printf("LONG %d\n", iv);
         }
         break;
+    case MYSQL_TYPE_DECIMAL:
+    case MYSQL_TYPE_NEWDECIMAL:
+        {
+            // column meta info
+            // 1st byte is precision, 2nd byte is scale.
+            char *meta = get_column_meta_def(ev->table_map, column_id);
+            unsigned char precision = *meta;
+            unsigned char scale = *(meta + 1);
+
+            int a, b;
+            double val;
+
+            cursor += 1;
+            memcpy(&a, buf + cursor, precision);
+            cursor += precision;
+            memcpy(&b, buf + cursor, scale);
+            cursor += scale;
+
+            val = a + PREFIX_DOT(b);
+
+            printf("DECIMAL: %lf, a: %d, b: %d\n", val, a, b);
+            printf("Decimal debug: "); print_memory(buf, 32);
+        }
+        break;
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VARCHAR:
     case MYSQL_TYPE_VAR_STRING:
@@ -287,8 +321,6 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TINY_BLOB:
     case MYSQL_TYPE_GEOMETRY:
     case MYSQL_TYPE_BIT:
-    case MYSQL_TYPE_DECIMAL:
-    case MYSQL_TYPE_NEWDECIMAL:
         {
             // varchar
             int tmp = 0;
