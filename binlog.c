@@ -10,16 +10,6 @@
 #include "tools.h"
 #include "debug.h"
 
-double PREFIX_DOT(int a)
-{
-    int i = 1;
-    while ((a = a % 10) > 10) {
-        i++;
-    }
-
-    return a * (1 / (10 * i));
-}
-
 char *event_types_post_header_length = NULL;
 
 // return specific event_type post_header length.
@@ -289,24 +279,35 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_NEWDECIMAL:
         {
+            #define DIG_PER_DEC1 9
             // column meta info
             // 1st byte is precision, 2nd byte is scale.
             char *meta = get_column_meta_def(ev->table_map, column_id);
+            int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 3, 3, 3, 4, 4, 4};
             unsigned char precision = *meta;
             unsigned char scale = *(meta + 1);
 
-            int a, b;
-            double val;
+            int intg, fracg;
+            unsigned char intg_l = 0, fracg_l = 0;
+            int tmp = 0;
+            double val = 0.0;
+
+            tmp = (precision - scale) % DIG_PER_DEC1;
+            intg_l = intdig2byte[tmp] + (precision - scale) / DIG_PER_DEC1;
+            tmp = scale % DIG_PER_DEC1;
+            fracg_l = intdig2byte[tmp] + scale / DIG_PER_DEC1;
 
             cursor += 1;
-            memcpy(&a, buf + cursor, precision);
-            cursor += precision;
-            memcpy(&b, buf + cursor, scale);
-            cursor += scale;
+            // TODO: 第一位反转, 这里破坏了从服务器过来的数据
+            memcpy(&intg, buf + cursor, intg_l);
+            /*(char *)&intg ^= 0x80;*/
+            cursor += intg_l;
+            memcpy(&fracg, buf + cursor, fracg_l);
+            cursor += fracg_l;
 
-            val = a + PREFIX_DOT(b);
+            val = intg + (fracg / (10 * (int_length(fracg) + 1)));
 
-            printf("DECIMAL: %lf, a: %d, b: %d\n", val, a, b);
+            printf("DECIMAL: %lf, a: %d(%d), b: %d(%d)\n", val, intg, intg_l, fracg, fracg_l);
             printf("Decimal debug: "); print_memory(buf, 32);
         }
         break;
