@@ -283,7 +283,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             // column meta info
             // 1st byte is precision, 2nd byte is scale.
             char *meta = get_column_meta_def(ev->table_map, column_id);
-            int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 3, 3, 3, 4, 4, 4};
+            int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 4};
             unsigned char precision = *meta;
             unsigned char scale = *(meta + 1);
 
@@ -293,14 +293,13 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             double val = 0.0;
 
             tmp = (precision - scale) % DIG_PER_DEC1;
-            intg_l = intdig2byte[tmp] + (precision - scale) / DIG_PER_DEC1;
+            intg_l = intdig2byte[tmp] + (precision - scale) / DIG_PER_DEC1 * 4;
             tmp = scale % DIG_PER_DEC1;
-            fracg_l = intdig2byte[tmp] + scale / DIG_PER_DEC1;
+            fracg_l = intdig2byte[tmp] + scale / DIG_PER_DEC1 * 4;
 
             cursor += 1;
-            // TODO: 第一位反转, 这里破坏了从服务器过来的数据
             memcpy(&intg, buf + cursor, intg_l);
-            /*(char *)&intg ^= 0x80;*/
+            intg = intg ^ 1 << (8 * intg_l);
             cursor += intg_l;
             memcpy(&fracg, buf + cursor, fracg_l);
             cursor += fracg_l;
