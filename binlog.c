@@ -259,6 +259,27 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
     return NULL;
 }
 
+int big_endian_number(const char *buf, char len)
+{
+    int num = 0;
+    unsigned char rest = 3 - len;
+
+    while (--len >= 0) {
+        *((char *)&num + rest - len) = *(buf + len);
+    }
+
+    return num;
+}
+
+int decimal_number(const char *buf, char len)
+{
+    if (len <= 4) {
+        return big_endian_number(buf, len);
+    }
+
+    return 0; // TODO: more than 4 byte integer.
+}
+
 int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 {
     int cursor = 0;
@@ -288,24 +309,25 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             unsigned char precision = *meta;
             unsigned char scale = *(meta + 1);
 
-            int intg = 0;
-            int fracg = 0;
-            unsigned char intg_l = 0;
-            unsigned char fracg_l = 0;
+            int integral = 0;
+            int fractional = 0;
+            unsigned char int_l = 0;
+            unsigned char frac_l = 0;
             double val = 0.0;
 
-            intg_l = intdig2byte[(precision - scale) % DIG_PER_DEC1] + (precision - scale) / DIG_PER_DEC1 * 4;
-            fracg_l = intdig2byte[scale % DIG_PER_DEC1] + scale / DIG_PER_DEC1 * 4;
+            int_l = intdig2byte[(precision - scale) % DIG_PER_DEC1] + (precision - scale) / DIG_PER_DEC1 * 4;
+            frac_l = intdig2byte[scale % DIG_PER_DEC1] + scale / DIG_PER_DEC1 * 4;
 
-            memcpy(&intg, buf + cursor, intg_l);
+            integral = decimal_number(buf + cursor, int_l);
+            printf("Decimal debug: "); print_memory((char *)&integral, 4);
             // intg = intg ^ 1 << (8 * intg_l);
-            cursor += intg_l;
-            memcpy(&fracg, buf + cursor, fracg_l);
-            cursor += fracg_l;
+            cursor += int_l;
+            fractional = decimal_number(buf + cursor, frac_l);
+            cursor += frac_l;
 
-            val = intg + (fracg / (10 * (int_length(fracg) + 1)));
+            val = integral + (fractional / (10 * (int_length(fractional) + 1)));
 
-            printf("DECIMAL: %lf, a: %d(%d), b: %d(%d)\n", val, intg, intg_l, fracg, fracg_l);
+            printf("DECIMAL: %lf, a: %d(%d), b: %d(%d)\n", val, integral, int_l, fractional, frac_l);
             printf("Decimal debug: "); print_memory(buf, 32);
         }
         break;
