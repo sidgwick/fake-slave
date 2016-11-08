@@ -11,6 +11,7 @@
 #include "debug.h"
 
 #define DIG_PER_DEC1 9
+#define SIGNED_NUMBER 1
 
 char *event_types_post_header_length = NULL;
 
@@ -259,25 +260,42 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
     return NULL;
 }
 
-int big_endian_number(const char *buf, char len)
+// 从大端序的内存里向小端序整型里面读len个字节
+int big_endian_number(const char *buf, char len, int type)
 {
     int num = 0;
-    unsigned char rest = 3 - len;
+    unsigned char rest = 4 - len;
 
     while (--len >= 0) {
-        *((char *)&num + rest - len) = *(buf + len);
+        *((char *)&num + 3 - len) = *(buf + len);
     }
 
-    return num;
+    if (type == SIGNED_NUMBER) {
+        num ^= 0x80000000;
+    }
+
+    return num >> (rest * 8);
 }
 
-int decimal_number(const char *buf, char len)
+// 根据binlog里面decimal的存储结构, 得到对应的数字
+long int decimal_number(const char *buf, char len, int type)
 {
-    if (len <= 4) {
-        return big_endian_number(buf, len);
+    int tmp;
+    unsigned char comp = len % 4;
+    long int number = 0;
+
+    tmp = big_endian_number(buf, comp, type);
+    number= tmp;
+
+    while (comp < len) {
+        tmp = big_endian_number(buf + comp, 4, !SIGNED_NUMBER);
+        comp += 4;
+
+        number *= 1000000000;
+        number += tmp;
     }
 
-    return 0; // TODO: more than 4 byte integer.
+    return number;
 }
 
 int get_column_val(struct rows_event *ev, int column_id, const char *buf)
@@ -309,26 +327,45 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             unsigned char precision = *meta;
             unsigned char scale = *(meta + 1);
 
-            int integral = 0;
-            int fractional = 0;
+            long int integral = 0;
+            long int fractional = 0;
             unsigned char int_l = 0;
             unsigned char frac_l = 0;
-            double val = 0.0;
 
             int_l = intdig2byte[(precision - scale) % DIG_PER_DEC1] + (precision - scale) / DIG_PER_DEC1 * 4;
             frac_l = intdig2byte[scale % DIG_PER_DEC1] + scale / DIG_PER_DEC1 * 4;
 
-            integral = decimal_number(buf + cursor, int_l);
-            printf("Decimal debug: "); print_memory((char *)&integral, 4);
-            // intg = intg ^ 1 << (8 * intg_l);
+            integral = decimal_number(buf + cursor, int_l, SIGNED_NUMBER);
             cursor += int_l;
-            fractional = decimal_number(buf + cursor, frac_l);
+            fractional = decimal_number(buf + cursor, frac_l, !SIGNED_NUMBER);
             cursor += frac_l;
 
-            val = integral + (fractional / (10 * (int_length(fractional) + 1)));
+            /*
+            // 浮点运算会产生近似值...
+            double val = 0.0;
+            int power = 1;
+            for (int i = 0; i < scale; i++) {
+                power *= 10;
+            }
 
-            printf("DECIMAL: %lf, a: %d(%d), b: %d(%d)\n", val, integral, int_l, fractional, frac_l);
-            printf("Decimal debug: "); print_memory(buf, 32);
+            val = integral + (double)fractional / power;
+            */
+            // 用字符串标识浮点值就不会出现精度损失了, 反正我们只是表示, 又不计算.
+            char zero[10];
+            int tmp = scale; // 需要前置多少个0
+            long int frac = fractional;
+            while (frac > 0) {
+                frac /= 10;
+                tmp--;
+            }
+
+            zero[tmp] = '\0';
+            while (tmp-- > 0) {
+                zero[tmp] = '0';
+            }
+
+
+            printf("Decimal: %ld.%s%ld\n", integral, zero, fractional);
         }
         break;
     case MYSQL_TYPE_STRING:
