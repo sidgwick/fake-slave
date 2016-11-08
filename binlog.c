@@ -396,7 +396,15 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TINY:
         {
             char num = *(buf + cursor++);
-            printf("TINYINT: %d\n", num);
+            printf("TINY INT: %d\n", num);
+        }
+        break;
+    case MYSQL_TYPE_SHORT:
+        {
+            uint16_t num = 0;
+            memcpy(&num, buf + cursor, 2);
+            cursor += 2;
+            printf("SHORT INT: %d\n", num);
         }
         break;
     default:
