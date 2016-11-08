@@ -340,17 +340,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             fractional = decimal_number(buf + cursor, frac_l, !SIGNED_NUMBER);
             cursor += frac_l;
 
-            /*
-            // 浮点运算会产生近似值...
-            double val = 0.0;
-            int power = 1;
-            for (int i = 0; i < scale; i++) {
-                power *= 10;
-            }
-
-            val = integral + (double)fractional / power;
-            */
-            // 用字符串标识浮点值就不会出现精度损失了, 反正我们只是表示, 又不计算.
+            // 保存为浮点数会出现精度损失, 所以保存为字符串表示.
             char zero[10];
             int tmp = scale; // 需要前置多少个0
             long int frac = fractional;
@@ -363,7 +353,6 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             while (tmp-- > 0) {
                 zero[tmp] = '0';
             }
-
 
             printf("Decimal: %ld.%s%ld\n", integral, zero, fractional);
         }
