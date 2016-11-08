@@ -393,6 +393,12 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             printf("VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
         }
         break;
+    case MYSQL_TYPE_TINY:
+        {
+            char num = *(buf + cursor++);
+            printf("TINYINT: %d\n", num);
+        }
+        break;
     default:
         printf("Other type\n");
     }
