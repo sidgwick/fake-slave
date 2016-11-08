@@ -407,6 +407,14 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             printf("SHORT INT: %d\n", num);
         }
         break;
+    case MYSQL_TYPE_LONGLONG:
+        {
+            uint64_t num = 0;
+            memcpy(&num, buf + cursor, 8);
+            cursor += 8;
+            printf("LONG LONG INT: %ld\n", num);
+        }
+        break;
     default:
         printf("Other type\n");
     }
