@@ -81,7 +81,7 @@ int decimal_number(const char *buf, unsigned char precision, unsigned char scale
         zero[tmp] = '0';
     }
 
-    printf("Decimal: %ld.%s%ld\n", integral ^ mask, zero, fractional ^ mask);
+    printf("Decimal: %ld.%s%ld\n", integral, zero, fractional);
 
     return int_l + frac_l;
 }
