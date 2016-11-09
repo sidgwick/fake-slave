@@ -51,7 +51,7 @@ long int decimal_number_part(const char *buf, char len, int type)
     return number;
 }
 
-
+// TODO: negative number
 int decimal_number(const char *buf, unsigned char precision, unsigned char scale)
 {
     int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 4};
