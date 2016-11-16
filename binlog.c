@@ -283,6 +283,23 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             memcpy(&iv, buf, 3);
             cursor += 3;
 
+            // if number is negative
+            if (iv & 0x00800000) {
+                /*
+                // 补码 => 反码
+                iv = iv - 1;
+                // 反码 => 原码
+                iv ^= -1;
+                // 低三位才是有效位
+                iv &= 0x00FFFFFF;
+                // 加上符号
+                iv *= -1;
+                */
+                print_memory(&iv, 4);
+                iv |= 0xFF000000;
+                print_memory(&iv, 4);
+            }
+
             printf("MEDIUM %d\n", iv);
         }
         break;
@@ -343,7 +360,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
         {
-            uint16_t num = 0;
+            int16_t num = 0;
             memcpy(&num, buf + cursor, 2);
             cursor += 2;
             printf("SHORT INT: %d\n", num);
@@ -351,7 +368,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_LONGLONG:
         {
-            uint64_t num = 0;
+            int64_t num = 0;
             memcpy(&num, buf + cursor, 8);
             cursor += 8;
             printf("LONG LONG INT: %ld\n", num);
@@ -362,7 +379,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             double d;
             memcpy(&d, buf + cursor, 8);
             cursor += 8;
-            printf("DOUBLE: %lf\n", d);
+            printf("DOUBLE %lf\n", d);
         }
         break;
     case MYSQL_TYPE_FLOAT:

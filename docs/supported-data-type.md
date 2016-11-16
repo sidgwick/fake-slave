@@ -4,14 +4,14 @@
 
 |  Type      |  Binlog Type            |  Status          |
 | ---------- | ----------------------- | ---------------- |
-|  TINYINT   |  MYSQL_TYPE_TINY        |  Fully supported |
-|  SMALLINT  |  MYSQL_TYPE_SHORT       |  Fully supported |
-|  MEDIUMINT |  MYSQL_TYPE_INT24       |  Fully supported |
-|  INT       |  MYSQL_TYPE_LONG        |  Fully supported |
-|  BIGINT    |  MYSQL_TYPE_LONGLONG    |  Bug |
-|  FLOAT     |  MYSQL_TYPE_FLOAT       |  Untested |
-|  DOUBLE    |  MYSQL_TYPE_DOUBLE      |  Untested |
-|  DECIMAL   |  MYSQL_TYPE_NEWDECIMAL  |  Untested |
+|  TINYINT   |  MYSQL_TYPE_TINY        |  fully supported |
+|  SMALLINT  |  MYSQL_TYPE_SHORT       |  fully supported |
+|  MEDIUMINT |  MYSQL_TYPE_INT24       |  fully supported |
+|  INT       |  MYSQL_TYPE_LONG        |  fully supported |
+|  BIGINT    |  MYSQL_TYPE_LONGLONG    |  fully supported |
+|  FLOAT     |  MYSQL_TYPE_FLOAT       |  loss precision  |
+|  DOUBLE    |  MYSQL_TYPE_DOUBLE      |  loss precision  |
+|  DECIMAL   |  MYSQL_TYPE_NEWDECIMAL  |  supported       |
 
 
 ## Temporal Types
