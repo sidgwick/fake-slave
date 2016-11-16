@@ -332,6 +332,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         }
         break;
     case MYSQL_TYPE_SHORT:
+    case MYSQL_TYPE_YEAR:
         {
             uint16_t num = 0;
             memcpy(&num, buf + cursor, 2);
@@ -345,6 +346,30 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             memcpy(&num, buf + cursor, 8);
             cursor += 8;
             printf("LONG LONG INT: %ld\n", num);
+        }
+        break;
+    case MYSQL_TYPE_DOUBLE:
+        {
+            // MYSQL_TYPE_DOUBLE stores a floating point in IEEE 754 double precision format
+        }
+        break;
+    case MYSQL_TYPE_FLOAT:
+        {
+            // MYSQL_TYPE_DOUBLE stores a floating point in IEEE 754 double precision format
+        }
+        break;
+    case MYSQL_TYPE_DATE:
+    case MYSQL_TYPE_DATETIME:
+    case MYSQL_TYPE_TIMESTAMP:
+        {
+        }
+        break;
+    case MYSQL_TYPE_TIME:
+        {
+        }
+        break;
+    case MYSQL_TYPE_NULL:
+        {
         }
         break;
     default:
