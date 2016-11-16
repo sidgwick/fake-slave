@@ -285,19 +285,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
             // if number is negative
             if (iv & 0x00800000) {
-                /*
-                // 补码 => 反码
-                iv = iv - 1;
-                // 反码 => 原码
-                iv ^= -1;
-                // 低三位才是有效位
-                iv &= 0x00FFFFFF;
-                // 加上符号
-                iv *= -1;
-                */
-                print_memory(&iv, 4);
+                // 负数, 熟悉下负数在内存里面的表示方法就知道这里为什么要这样写了.
                 iv |= 0xFF000000;
-                print_memory(&iv, 4);
             }
 
             printf("MEDIUM %d\n", iv);
