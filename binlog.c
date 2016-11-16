@@ -267,7 +267,6 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
     switch (column_def) {
     case MYSQL_TYPE_LONG:
-    case MYSQL_TYPE_INT24:
         {
             // long int.
             int iv = 0;
@@ -275,6 +274,16 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             cursor += 4;
 
             printf("LONG %d\n", iv);
+        }
+        break;
+    case MYSQL_TYPE_INT24:
+        {
+            // long int.
+            int iv = 0;
+            memcpy(&iv, buf, 3);
+            cursor += 3;
+
+            printf("MEDIUM %d\n", iv);
         }
         break;
     case MYSQL_TYPE_DECIMAL:
@@ -350,12 +359,18 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_DOUBLE:
         {
-            // MYSQL_TYPE_DOUBLE stores a floating point in IEEE 754 double precision format
+            double d;
+            memcpy(&d, buf + cursor, 8);
+            cursor += 8;
+            printf("DOUBLE: %lf\n", d);
         }
         break;
     case MYSQL_TYPE_FLOAT:
         {
-            // MYSQL_TYPE_DOUBLE stores a floating point in IEEE 754 double precision format
+            float f;
+            memcpy(&f, buf + cursor, 4);
+            cursor += 4;
+            printf("FLOAT: %f\n", f);
         }
         break;
     case MYSQL_TYPE_DATE:
