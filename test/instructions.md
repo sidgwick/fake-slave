@@ -43,3 +43,24 @@ Column def: 04, ID: 5 value: FLOAT: -1.235000
 Column def: 05, ID: 6 value: DOUBLE -12789.123600
 Column def: f6, ID: 7 value: Decimal: -12396.2310
 ```
+
+
+## Temporal Types
+
+
+## Input
+
+```sql
+CREATE TABLE `temporal` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tm_timestamp` timestamp,
+  `tm_datetime` datetime,
+  `tm_date` date,
+  `tm_time` time,
+  `tm_year` year,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- insert into temporal values ('', unix_timestamp(), now(), curdate(), curtime(), year(now()));
+insert into temporal values ('', '2016-11-17 21:08:05', '2016-11-17 21:08:05', '2016-11-17', '21:08:05', 2016);
+```
