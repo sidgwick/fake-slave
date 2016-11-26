@@ -264,6 +264,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
     printf("Column def: %02x, ID: %d value: ", column_def, column_id);
+    print_memory(buf, 20);
 
     switch (column_def) {
     case MYSQL_TYPE_LONG:
@@ -381,12 +382,68 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_DATE:
     case MYSQL_TYPE_DATETIME:
+    case MYSQL_TYPE_DATETIME2:
     case MYSQL_TYPE_TIMESTAMP:
+    case MYSQL_TYPE_TIMESTAMP2:
         {
+            uint8_t len;
+            uint16_t year = 0;
+            uint8_t month = 0;
+            uint8_t day = 0;
+            uint8_t hour = 0;
+            uint8_t minute = 0;
+            uint8_t second = 0;
+            uint32_t micro_second = 0;
+
+            len = *(buf + cursor++);
+            if (len > 0) {
+                memcpy(&year, buf + cursor, 2);
+                cursor += 2;
+                month = *(buf + cursor++);
+                day = *(buf + cursor++);
+            }
+            if (len > 4) {
+                hour = *(buf + cursor++);
+                minute = *(buf + cursor++);
+                second = *(buf + cursor++);
+            }
+            if (len > 7) {
+                memcpy(&micro_second, buf + cursor, 4);
+                cursor += 4;
+            }
+
+            printf("DATETIME: %d-%d-%d %d:%d:%d.%d\n", year, month, day, hour, minute, second, micro_second);
         }
         break;
     case MYSQL_TYPE_TIME:
+    case MYSQL_TYPE_TIME2:
         {
+            uint8_t len;
+            uint8_t is_negative = 0;
+            uint32_t day = 0;
+            uint8_t hour = 0;
+            uint8_t minute = 0;
+            uint8_t second = 0;
+            uint32_t micro_second = 0;
+
+            len = *(buf + cursor++);
+            if (len > 0) {
+                is_negative = *(buf + cursor++);
+                memcpy(&day, buf + cursor, 4);
+                cursor += 4;
+                hour = *(buf + cursor++);
+                minute = *(buf + cursor++);
+                second = *(buf + cursor++);
+            }
+            if (len > 8) {
+                memcpy(&micro_second, buf + cursor, 4);
+                cursor += 4;
+            }
+
+            char c = is_negative ? '-' : ' ';
+
+            printf("TIME: %c%d %d:%d:%d.%d\n", c, day, hour, minute, second, micro_second);
+
         }
         break;
     case MYSQL_TYPE_NULL:
