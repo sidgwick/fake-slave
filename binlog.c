@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <arpa/inet.h>
+
 #include "client.h"
 #include "query.h"
 #include "binlog.h"
@@ -226,6 +228,9 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
         case MYSQL_TYPE_BLOB:
         case MYSQL_TYPE_DOUBLE:
         case MYSQL_TYPE_FLOAT:
+        case MYSQL_TYPE_TIME2:
+        case MYSQL_TYPE_DATETIME2:
+        case MYSQL_TYPE_TIMESTAMP2:
             meta_len = 1;
             break;
         case MYSQL_TYPE_BIT:
@@ -380,11 +385,30 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             printf("FLOAT: %f\n", f);
         }
         break;
+    case MYSQL_TYPE_TIMESTAMP2:
+        {
+            uint32_t value = 0;
+            uint32_t nano = 0;
+            uint8_t nano_len = 0;
+
+            // column meta info
+            char *meta = get_column_meta_def(ev->table_map, column_id);
+            nano_len = (*meta + 1) / 2;
+
+            // 此处小端序? 我擦
+            memcpy(&value, buf + cursor, 4);
+            cursor += 4;
+            value = ntohl(value);
+            memcpy(&nano, buf + cursor, nano_len);
+            cursor += nano_len;
+
+            printf("TIMESTAMP2: %u.%u\n", value, nano);
+        }
+        break;
     case MYSQL_TYPE_DATE:
     case MYSQL_TYPE_DATETIME:
     case MYSQL_TYPE_DATETIME2:
     case MYSQL_TYPE_TIMESTAMP:
-    case MYSQL_TYPE_TIMESTAMP2:
         {
             uint8_t len;
             uint16_t year = 0;
