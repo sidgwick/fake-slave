@@ -27,11 +27,8 @@ void usage(char *name)
             );
 }
 
-int main(int argc, char *argv[])
+void parse_command_pareters(int argc, char *argv[])
 {
-    int sockfd;
-    struct sockaddr_in server_address;
-
     char opt;
     // command line parameters
     while ((opt = getopt(argc, argv, "dh:u:p:D:P:")) != -1) {
@@ -59,6 +56,14 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
+}
+
+int main(int argc, char *argv[])
+{
+    int sockfd;
+    struct sockaddr_in server_address;
+
+    parse_command_pareters(argc, argv);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
