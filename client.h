@@ -5,7 +5,17 @@
 
 #define BUF_SIZE 1024
 
+struct configure {
+    int debug;
+    char *host;
+    char *user;
+    char *password;
+    char *database;
+    short int port;
+};
+
 typedef struct {
+    struct configure config;
     int sockfd; // server socket
     uint8_t protocol_version;
     char *server_version;

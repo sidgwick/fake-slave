@@ -135,13 +135,14 @@ static int response_handshake_to_server(server_info *info)
     cursor += 23;
 
     // user name
-    memcpy(buf + cursor, "root\0", 5);
-    cursor += 5;
+    tmp = strlen(info->config.user) + 1; // copy w/ null byte
+    memcpy(buf + cursor, info->config.user, tmp);
+    cursor += tmp;
 
     // hash password
     unsigned char *password_hash;
     password_hash = malloc(sizeof(char) * BUF_SIZE);
-    calculate_password_sha1(info, "1111", password_hash);
+    calculate_password_sha1(info, info->config.password, password_hash);
     // CLIENT_SECURE_CONNECTION set, password hash length is the SHA_DIGEST_LENGTH.
     *(buf + cursor) = SHA_DIGEST_LENGTH;
     // copy password hash to buffer.
@@ -150,8 +151,9 @@ static int response_handshake_to_server(server_info *info)
     cursor += SHA_DIGEST_LENGTH + 1;
 
     // CLIENT_CONNECT_WITH_DB set, database
-    memcpy(buf + cursor, "test", 5);
-    cursor += 5;
+    tmp = strlen(info->config.database) + 1;
+    memcpy(buf + cursor, info->config.database, tmp);
+    cursor += tmp;
 
     // CLIENT_SECURE_CONNECTION auth plug name
     memcpy(buf + cursor, "mysql_native_password", 21);
