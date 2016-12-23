@@ -52,7 +52,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, server_i
     info->character_set = *buf++;
 
     // status_flags
-    memcpy(&info->status_flags, buf, 2);
+    info->status_flags = read_int2(buf);
     buf += 2;
 
     // capability_flags_2
@@ -211,8 +211,8 @@ int handshake_with_server(server_info *server_info) {
         exit(2);
     }
 
-    memcpy(&length, buf, 3);
-    memcpy(&sequence_id, buf + 3, 1);
+    length = read_int3(buf);
+    sequence_id = read_int1(buf + 3);
 
 #ifdef DEBUG
     printf("Package from server: ");

@@ -31,22 +31,22 @@ int binlog_event_header(struct event_header *header, const char *buf)
 {
     int cursor = 0;
 
-    memcpy(&header->timestamp, buf + cursor, 4);
+    header->timestamp = read_int4(buf + cursor);
     cursor += 4;
 
     header->event_type = *(buf + cursor++);
 
-    memcpy(&header->server_id, buf + cursor, 4);
+    header->server_id = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&header->event_size, buf + cursor, 4);
+    header->event_size = read_int4(buf + cursor);
     cursor += 4;
 
     // position of the next event
-    memcpy(&header->log_pos, buf + cursor, 4);
+    header->log_pos = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&header->flags, buf + cursor, 2);
+    header->flags = read_int2(buf + cursor);
     cursor += 2;
 
 #ifdef DEBUG
@@ -57,12 +57,13 @@ int binlog_event_header(struct event_header *header, const char *buf)
 }
 
 // ROTATE_EVENT: return the event body(include the post header) length.
+// TODO: malloc
 int rotate_event(struct rotate_event *ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&ev->position, buf + cursor, 8);
+    ev->position = read_int8(buf + cursor);
     cursor += 8;
 
     rest_length = sizeof(char) * (ev->header.event_size - (19 + cursor));
@@ -79,18 +80,19 @@ int rotate_event(struct rotate_event *ev, const char *buf)
 }
 
 // FORMAT_DESCRIPTION_EVENT
+// TODO: realloc
 int format_description_event(struct format_description_event *fmt_des_ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&fmt_des_ev->binlog_version, buf + cursor, 2);
+    fmt_des_ev->binlog_version = read_int2(buf + cursor);
     cursor += 2;
 
     strcpy(fmt_des_ev->mysql_version, buf + cursor);
     cursor += 50;
 
-    memcpy(&fmt_des_ev->create_timestamp, buf + cursor, 4);
+    fmt_des_ev->create_timestamp = read_int4(buf + cursor);
     cursor += 4;
 
     fmt_des_ev->event_header_length = *(buf + cursor++);
@@ -108,23 +110,24 @@ int format_description_event(struct format_description_event *fmt_des_ev, const 
 }
 
 // QUERY_EVENT
+// TODO: malloc
 int query_event(struct query_event *query_ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&query_ev->slave_proxy_id, buf + cursor, 4);
+    query_ev->slave_proxy_id = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&query_ev->execution_time, buf + cursor, 4);
+    query_ev->execution_time = read_int4(buf + cursor);
     cursor += 4;
 
     query_ev->schema_length = *(buf + cursor++);
 
-    memcpy(&query_ev->error_code, buf + cursor, 2);
+    query_ev->error_code =  read_int2(buf + cursor);
     cursor += 2;
 
-    memcpy(&query_ev->status_vars_length, buf + cursor, 2);
+    query_ev->status_vars_length = read_int2(buf + cursor);
     cursor += 2;
 
     query_ev->status_vars = malloc(sizeof(char) * query_ev->status_vars_length);
@@ -149,6 +152,7 @@ int query_event(struct query_event *query_ev, const char *buf)
 }
 
 // TABLE MAP EVENT
+// TODO: replace reader
 int table_map_event(struct table_map_event *ev, const char *buf)
 {
     int post_header_length = get_post_header_length(TABLE_MAP_EVENT);
@@ -156,14 +160,14 @@ int table_map_event(struct table_map_event *ev, const char *buf)
     int tmp = 0;
 
     if (post_header_length == 6) {
-        memcpy(&ev->table_id, buf + cursor, 4);
+        ev->table_id = read_int4(buf + cursor);
         cursor += 4;
     } else {
-        memcpy(&ev->table_id, buf + cursor, 6);
+        ev->table_id = read_int6(buf + cursor);
         cursor += 6;
     }
 
-    memcpy(&ev->flags, buf + cursor, 2);
+    ev->flags = read_int2(buf + cursor);
     cursor += 2;
 
     // schema name length
@@ -276,7 +280,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         {
             // long int.
             int iv = 0;
-            memcpy(&iv, buf, 4);
+            iv = read_int4(buf);
             cursor += 4;
 
             printf("LONG %d\n", iv);
@@ -286,14 +290,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         {
             // long int.
             int iv = 0;
-            memcpy(&iv, buf, 3);
+            iv = read_int3(buf);
             cursor += 3;
-
-            // if number is negative
-            if (iv & 0x00800000) {
-                // 负数, 熟悉下负数在内存里面的表示方法就知道这里为什么要这样写了.
-                iv |= 0xFF000000;
-            }
 
             printf("MEDIUM %d\n", iv);
         }
@@ -356,7 +354,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_YEAR:
         {
             int16_t num = 0;
-            memcpy(&num, buf + cursor, 2);
+            num = read_int2(buf + cursor);
             cursor += 2;
             printf("SHORT INT: %d\n", num);
         }
@@ -364,7 +362,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_LONGLONG:
         {
             int64_t num = 0;
-            memcpy(&num, buf + cursor, 8);
+            num = read_int8(buf + cursor);
             cursor += 8;
             printf("LONG LONG INT: %ld\n", num);
         }
@@ -372,7 +370,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_DOUBLE:
         {
             double d;
-            memcpy(&d, buf + cursor, 8);
+            d = read_int8(buf + cursor);
             cursor += 8;
             printf("DOUBLE %lf\n", d);
         }
@@ -380,7 +378,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_FLOAT:
         {
             float f;
-            memcpy(&f, buf + cursor, 4);
+            f = read_int4(buf + cursor);
             cursor += 4;
             printf("FLOAT: %f\n", f);
         }
@@ -396,7 +394,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             nano_len = (*meta + 1) / 2;
 
             // 此处小端序? 我擦
-            memcpy(&value, buf + cursor, 4);
+            value = read_int4(buf + cursor);
             cursor += 4;
             value = ntohl(value);
             memcpy(&nano, buf + cursor, nano_len);
@@ -421,7 +419,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
             len = *(buf + cursor++);
             if (len > 0) {
-                memcpy(&year, buf + cursor, 2);
+                year = read_int2(buf + cursor);
                 cursor += 2;
                 month = *(buf + cursor++);
                 day = *(buf + cursor++);
@@ -432,7 +430,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
                 second = *(buf + cursor++);
             }
             if (len > 7) {
-                memcpy(&micro_second, buf + cursor, 4);
+                micro_second = read_int4(buf + cursor);
                 cursor += 4;
             }
 
@@ -453,14 +451,14 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             len = *(buf + cursor++);
             if (len > 0) {
                 is_negative = *(buf + cursor++);
-                memcpy(&day, buf + cursor, 4);
+                day = read_int4(buf + cursor);
                 cursor += 4;
                 hour = *(buf + cursor++);
                 minute = *(buf + cursor++);
                 second = *(buf + cursor++);
             }
             if (len > 8) {
-                memcpy(&micro_second, buf + cursor, 4);
+                micro_second = read_int4(buf + cursor);
                 cursor += 4;
             }
 
@@ -522,14 +520,14 @@ int rows_event(struct rows_event *ev, const char *buf)
     int tmp;
 
     if (post_header_length == 6) {
-        memcpy(&ev->table_id, buf + cursor, 4);
+        ev->table_id = read_int4(buf + cursor);
         cursor += 4;
     } else {
-        memcpy(&ev->table_id, buf + cursor, 6);
+        ev->table_id = read_int6(buf + cursor);
         cursor += 6;
     }
 
-    memcpy(&ev->flags, buf + cursor, 2);
+    ev->flags = read_int2(buf + cursor);
     cursor += 2;
 
     // body
@@ -655,7 +653,7 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
     case XID_EVENT:
         {
             uint64_t xid = 0;
-            memcpy(&xid, buf, 8);
+            xid = read_int8(buf);
             printf("XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
         }
         break;
@@ -726,7 +724,7 @@ int run_binlog_stream(server_info *info)
             int length = 0; // packet length
             unsigned char sequence_id = 0; // packet sequence id
 
-            memcpy(&length, buf + cursor, 3);
+            length = read_int3(buf + cursor);
             sequence_id = *(buf + cursor + 3);
 
             cursor += 4;
