@@ -2,6 +2,44 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// 读取2位整型
+int16_t read_int2(char *buf)
+{
+    return *(int16_t *)buf;
+}
+
+// 读取3位整型
+int32_t read_int3(char *buf)
+{
+    int32_t tmp = 0;
+
+    memcpy(&tmp, buf, 3);
+
+    // 如果 buf 里面存储的是 ABCD, 那么, 此时 tmp 里面存储的是 ABC0
+    // 由于机器是小端序的, 所以这个数字应该理解成: 0CBA
+    // 于是我们要检测 00C0 与 00(80)0 的与, 以判定是否为负数, 如果是负数, tmp 里面
+    // 未能填充的 0 位将会带来错误, 就需要把它手动置为 1
+    // if number is negative
+    if (tmp & 0x00800000) {
+        // 负数, 熟悉下负数在内存里面的表示方法就知道这里为什么要这样写了.
+        tmp |= 0xFF000000;
+    }
+
+    return tmp;
+}
+
+// 读取一个4位整型
+int32_t read_int4(char *buf)
+{
+    return *(int32_t *)buf;
+}
+
+// 读取8位整型
+int64_t read_int8(char *buf)
+{
+    return *(int64_t *)buf;
+}
+
 int get_length_encode_number(const char *buf, int *length)
 {
     int tmp = 0;
