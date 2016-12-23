@@ -73,7 +73,7 @@ int fetch_query_row(server_info *info)
         uint32_t length = 0;
         uint8_t id = 0;
 
-        memcpy(&length, cursor, 3);
+        length = read_int3(cursor);
         cursor += 3;
         id = *cursor++;
 

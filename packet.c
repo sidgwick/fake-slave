@@ -13,7 +13,7 @@ int parse_ok_packet(const char *buf, ok_packet *pkt)
     int cursor = 0;
     int grow = 0;
 
-    memcpy(&pkt->length, buf, 3);
+    pkt->length = read_int3(buf);
     cursor += 3;
 
     pkt->id = *(buf + cursor++);
@@ -27,10 +27,10 @@ int parse_ok_packet(const char *buf, ok_packet *pkt)
     cursor += grow;
 
     // we use CLIENT_PROTOCOL_41
-    memcpy(&pkt->status_flags, buf + cursor, 2);
+    pkt->status_flags = read_int2(buf + cursor);
     cursor += 2;
 
-    memcpy(&pkt->warnings, buf + cursor, 2);
+    pkt->warnings = read_int2(buf + cursor);
     cursor += 2;
 
 #ifdef DEBUG
@@ -73,7 +73,7 @@ int parse_column_define_packet(const char *buf)
     //   lenenc_int     length of default-values
     //   string[$len]   default values
     //     }
-
+/*
     int string_length;
 
     char *catalog;
@@ -103,18 +103,18 @@ int parse_column_define_packet(const char *buf)
     buf += 1; // skip byte length of content fixed-length fields
 
     uint16_t charset;
-    memcpy(&charset, buf, 2);
+    charset = read_int2(buf);
     buf += 2;
 
     uint32_t column_length;
-    memcpy(&column_length, buf, 4);
+    column_length = read_int4(buf);
     buf += 4;
 
     uint8_t type;
     type = *buf++;
 
     uint16_t flags;
-    memcpy(&flags, buf, 2);
+    flags = read_int2(buf);
     buf += 2;
 
     uint8_t decimals;
@@ -132,6 +132,6 @@ int parse_column_define_packet(const char *buf)
     printf("org_table: %s\n", org_table);
     printf("name: %s\n", name);
     printf("org_name: %s\n", org_name);
-
+*/
     return 0;
 }

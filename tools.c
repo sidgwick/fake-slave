@@ -34,6 +34,16 @@ int32_t read_int4(const char *buf)
     return *(int32_t *)buf;
 }
 
+// 读取6位整型
+int64_t read_int6(const char *buf)
+{
+    int64_t tmp = 0;
+
+    memcpy(&tmp, buf, 6);
+
+    return tmp;
+}
+
 // 读取8位整型
 int64_t read_int8(const char *buf)
 {

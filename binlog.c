@@ -160,14 +160,14 @@ int table_map_event(struct table_map_event *ev, const char *buf)
     int tmp = 0;
 
     if (post_header_length == 6) {
-        memcpy(&ev->table_id, buf + cursor, 4);
+        ev->table_id = read_int4(buf + cursor);
         cursor += 4;
     } else {
-        memcpy(&ev->table_id, buf + cursor, 6);
+        ev->table_id = read_int6(buf + cursor);
         cursor += 6;
     }
 
-    memcpy(&ev->flags, buf + cursor, 2);
+    ev->flags = read_int2(buf + cursor);
     cursor += 2;
 
     // schema name length
@@ -280,7 +280,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         {
             // long int.
             int iv = 0;
-            memcpy(&iv, buf, 4);
+            iv = read_int4(buf);
             cursor += 4;
 
             printf("LONG %d\n", iv);
@@ -290,14 +290,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         {
             // long int.
             int iv = 0;
-            memcpy(&iv, buf, 3);
+            iv = read_int3(buf);
             cursor += 3;
-
-            // if number is negative
-            if (iv & 0x00800000) {
-                // 负数, 熟悉下负数在内存里面的表示方法就知道这里为什么要这样写了.
-                iv |= 0xFF000000;
-            }
 
             printf("MEDIUM %d\n", iv);
         }
@@ -360,7 +354,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_YEAR:
         {
             int16_t num = 0;
-            memcpy(&num, buf + cursor, 2);
+            num = read_int2(buf + cursor);
             cursor += 2;
             printf("SHORT INT: %d\n", num);
         }
@@ -368,7 +362,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_LONGLONG:
         {
             int64_t num = 0;
-            memcpy(&num, buf + cursor, 8);
+            num = read_int8(buf + cursor);
             cursor += 8;
             printf("LONG LONG INT: %ld\n", num);
         }
@@ -376,7 +370,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_DOUBLE:
         {
             double d;
-            memcpy(&d, buf + cursor, 8);
+            d = read_int8(buf + cursor);
             cursor += 8;
             printf("DOUBLE %lf\n", d);
         }
@@ -384,7 +378,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_FLOAT:
         {
             float f;
-            memcpy(&f, buf + cursor, 4);
+            f = read_int4(buf + cursor);
             cursor += 4;
             printf("FLOAT: %f\n", f);
         }
@@ -400,7 +394,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             nano_len = (*meta + 1) / 2;
 
             // 此处小端序? 我擦
-            memcpy(&value, buf + cursor, 4);
+            value = read_int4(buf + cursor);
             cursor += 4;
             value = ntohl(value);
             memcpy(&nano, buf + cursor, nano_len);
@@ -425,7 +419,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
             len = *(buf + cursor++);
             if (len > 0) {
-                memcpy(&year, buf + cursor, 2);
+                year = read_int2(buf + cursor);
                 cursor += 2;
                 month = *(buf + cursor++);
                 day = *(buf + cursor++);
@@ -436,7 +430,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
                 second = *(buf + cursor++);
             }
             if (len > 7) {
-                memcpy(&micro_second, buf + cursor, 4);
+                micro_second = read_int4(buf + cursor);
                 cursor += 4;
             }
 
@@ -457,14 +451,14 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             len = *(buf + cursor++);
             if (len > 0) {
                 is_negative = *(buf + cursor++);
-                memcpy(&day, buf + cursor, 4);
+                day = read_int4(buf + cursor);
                 cursor += 4;
                 hour = *(buf + cursor++);
                 minute = *(buf + cursor++);
                 second = *(buf + cursor++);
             }
             if (len > 8) {
-                memcpy(&micro_second, buf + cursor, 4);
+                micro_second = read_int4(buf + cursor);
                 cursor += 4;
             }
 
@@ -526,14 +520,14 @@ int rows_event(struct rows_event *ev, const char *buf)
     int tmp;
 
     if (post_header_length == 6) {
-        memcpy(&ev->table_id, buf + cursor, 4);
+        ev->table_id = read_int4(buf + cursor);
         cursor += 4;
     } else {
-        memcpy(&ev->table_id, buf + cursor, 6);
+        ev->table_id = read_int6(buf + cursor);
         cursor += 6;
     }
 
-    memcpy(&ev->flags, buf + cursor, 2);
+    ev->flags = read_int2(buf + cursor);
     cursor += 2;
 
     // body
@@ -659,7 +653,7 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
     case XID_EVENT:
         {
             uint64_t xid = 0;
-            memcpy(&xid, buf, 8);
+            xid = read_int8(buf);
             printf("XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
         }
         break;
@@ -730,7 +724,7 @@ int run_binlog_stream(server_info *info)
             int length = 0; // packet length
             unsigned char sequence_id = 0; // packet sequence id
 
-            memcpy(&length, buf + cursor, 3);
+            length = read_int3(buf + cursor);
             sequence_id = *(buf + cursor + 3);
 
             cursor += 4;

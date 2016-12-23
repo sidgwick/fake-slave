@@ -6,7 +6,7 @@
 typedef struct {
     uint32_t length;
     uint8_t id;
-    char header;
+    unsigned char header;
     uint64_t affected_rows;
     uint64_t last_insert_id;
     uint16_t status_flags;

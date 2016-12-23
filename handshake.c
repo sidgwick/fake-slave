@@ -10,6 +10,7 @@
 #include "handshake.h"
 #include "packet.h"
 #include "client.h"
+#include "tools.h"
 
 #ifdef DEBUG
 #include "debug.h"
@@ -23,14 +24,14 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, server_i
     // Protocol version
     info->protocol_version = *buf++;
 
-    // server version 
+    // server version
     info->server_version = malloc(sizeof(char) * strlen(buf) + 1);
     strcpy(info->server_version, buf);
     buf += strlen(info->server_version) + 1; // additional null byte
 
     // connection id
-    memcpy(&info->connection_id, buf, sizeof(uint32_t));
-    buf += sizeof(uint32_t);
+    info->connection_id = read_int4(buf);
+    buf += 4;
 
     // auth_plugin_data_part_1
     memcpy(auth_plugin_data, buf, 8);
@@ -52,7 +53,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, server_i
     info->character_set = *buf++;
 
     // status_flags
-    memcpy(&info->status_flags, buf, 2);
+    info->status_flags = read_int2(buf);
     buf += 2;
 
     // capability_flags_2
@@ -211,8 +212,8 @@ int handshake_with_server(server_info *server_info) {
         exit(2);
     }
 
-    memcpy(&length, buf, 3);
-    memcpy(&sequence_id, buf + 3, 1);
+    length = read_int3(buf);
+    sequence_id = *(int *)(buf + 3);
 
 #ifdef DEBUG
     printf("Package from server: ");

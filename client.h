@@ -17,13 +17,13 @@ struct configure {
 typedef struct {
     struct configure config;
     int sockfd; // server socket
-    uint8_t protocol_version;
+    int8_t protocol_version;
     char *server_version;
-    uint32_t connection_id;
+    int32_t connection_id;
     char filter;
-    uint32_t capability_flags;
+    int32_t capability_flags;
     char character_set;
-    uint16_t status_flags;
+    int16_t status_flags;
     char auth_plugin_data_len;
     char *auth_plugin_data; // length of (auth_plugin_data + '\0') == auth_plugin_data_len.
     char reserved[10];
