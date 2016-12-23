@@ -152,7 +152,6 @@ int query_event(struct query_event *query_ev, const char *buf)
 }
 
 // TABLE MAP EVENT
-// TODO: replace reader
 int table_map_event(struct table_map_event *ev, const char *buf)
 {
     int post_header_length = get_post_header_length(TABLE_MAP_EVENT);

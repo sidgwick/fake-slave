@@ -39,7 +39,7 @@ int64_t read_int6(const char *buf)
 {
     int64_t tmp = 0;
 
-    memcpy(&tmp, buf + cursor, 6);
+    memcpy(&tmp, buf, 6);
 
     return tmp;
 }

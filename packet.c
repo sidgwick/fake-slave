@@ -73,7 +73,7 @@ int parse_column_define_packet(const char *buf)
     //   lenenc_int     length of default-values
     //   string[$len]   default values
     //     }
-
+/*
     int string_length;
 
     char *catalog;
@@ -132,6 +132,6 @@ int parse_column_define_packet(const char *buf)
     printf("org_table: %s\n", org_table);
     printf("name: %s\n", name);
     printf("org_name: %s\n", org_name);
-
+*/
     return 0;
 }
