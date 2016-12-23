@@ -3,13 +3,13 @@
 #include <stdlib.h>
 
 // 读取2位整型
-int16_t read_int2(char *buf)
+int16_t read_int2(const char *buf)
 {
     return *(int16_t *)buf;
 }
 
 // 读取3位整型
-int32_t read_int3(char *buf)
+int32_t read_int3(const char *buf)
 {
     int32_t tmp = 0;
 
@@ -29,13 +29,13 @@ int32_t read_int3(char *buf)
 }
 
 // 读取一个4位整型
-int32_t read_int4(char *buf)
+int32_t read_int4(const char *buf)
 {
     return *(int32_t *)buf;
 }
 
 // 读取8位整型
-int64_t read_int8(char *buf)
+int64_t read_int8(const char *buf)
 {
     return *(int64_t *)buf;
 }

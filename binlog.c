@@ -31,22 +31,22 @@ int binlog_event_header(struct event_header *header, const char *buf)
 {
     int cursor = 0;
 
-    memcpy(&header->timestamp, buf + cursor, 4);
+    header->timestamp = read_int4(buf + cursor);
     cursor += 4;
 
     header->event_type = *(buf + cursor++);
 
-    memcpy(&header->server_id, buf + cursor, 4);
+    header->server_id = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&header->event_size, buf + cursor, 4);
+    header->event_size = read_int4(buf + cursor);
     cursor += 4;
 
     // position of the next event
-    memcpy(&header->log_pos, buf + cursor, 4);
+    header->log_pos = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&header->flags, buf + cursor, 2);
+    header->flags = read_int2(buf + cursor);
     cursor += 2;
 
 #ifdef DEBUG
@@ -57,12 +57,13 @@ int binlog_event_header(struct event_header *header, const char *buf)
 }
 
 // ROTATE_EVENT: return the event body(include the post header) length.
+// TODO: malloc
 int rotate_event(struct rotate_event *ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&ev->position, buf + cursor, 8);
+    ev->position = read_int8(buf + cursor);
     cursor += 8;
 
     rest_length = sizeof(char) * (ev->header.event_size - (19 + cursor));
@@ -79,18 +80,19 @@ int rotate_event(struct rotate_event *ev, const char *buf)
 }
 
 // FORMAT_DESCRIPTION_EVENT
+// TODO: realloc
 int format_description_event(struct format_description_event *fmt_des_ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&fmt_des_ev->binlog_version, buf + cursor, 2);
+    fmt_des_ev->binlog_version = read_int2(buf + cursor);
     cursor += 2;
 
     strcpy(fmt_des_ev->mysql_version, buf + cursor);
     cursor += 50;
 
-    memcpy(&fmt_des_ev->create_timestamp, buf + cursor, 4);
+    fmt_des_ev->create_timestamp = read_int4(buf + cursor);
     cursor += 4;
 
     fmt_des_ev->event_header_length = *(buf + cursor++);
@@ -108,23 +110,24 @@ int format_description_event(struct format_description_event *fmt_des_ev, const 
 }
 
 // QUERY_EVENT
+// TODO: malloc
 int query_event(struct query_event *query_ev, const char *buf)
 {
     int cursor = 0;
     int rest_length = 0;
 
-    memcpy(&query_ev->slave_proxy_id, buf + cursor, 4);
+    query_ev->slave_proxy_id = read_int4(buf + cursor);
     cursor += 4;
 
-    memcpy(&query_ev->execution_time, buf + cursor, 4);
+    query_ev->execution_time = read_int4(buf + cursor);
     cursor += 4;
 
     query_ev->schema_length = *(buf + cursor++);
 
-    memcpy(&query_ev->error_code, buf + cursor, 2);
+    query_ev->error_code =  read_int2(buf + cursor);
     cursor += 2;
 
-    memcpy(&query_ev->status_vars_length, buf + cursor, 2);
+    query_ev->status_vars_length = read_int2(buf + cursor);
     cursor += 2;
 
     query_ev->status_vars = malloc(sizeof(char) * query_ev->status_vars_length);
@@ -149,6 +152,7 @@ int query_event(struct query_event *query_ev, const char *buf)
 }
 
 // TABLE MAP EVENT
+// TODO: replace reader
 int table_map_event(struct table_map_event *ev, const char *buf)
 {
     int post_header_length = get_post_header_length(TABLE_MAP_EVENT);
