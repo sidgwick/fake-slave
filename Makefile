@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS += -DDEBUG -g -Wall
 LDFLAGS += -lssl -lcrypto
 
-client: client.o handshake.o packet.o tools.o query.o binlog.o decimal.o debug.o
+client: client.o handshake.o packet.o tools.o query.o binlog.o rows_event.o decimal.o debug.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 .c.o:

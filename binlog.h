@@ -167,6 +167,6 @@ struct rows_event {
 };
 
 int run_binlog_stream(server_info *);
-int get_post_header_length(int event_type);
+int get_post_header_length(int);
 
 #endif
