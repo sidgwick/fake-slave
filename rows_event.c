@@ -210,9 +210,67 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             printf("TIMESTAMP2: %u.%u\n", value, nano);
         }
         break;
+    case MYSQL_TYPE_DATETIME2:
+        {
+            /*
+             * 1 bit  sign            (1= non-negative, 0= negative)
+             * 17 bits year*13+month  (year 0-9999, month 0-12)
+             * 5 bits day             (0-31)
+             * 5 bits hour            (0-23)
+             * 6 bits minute          (0-59)
+             * 6 bits second          (0-59)
+             * ---------------------------
+             * 40 bits = 5 bytes
+             *
+             * TXT: 2017-01-05 13:25:46
+             * HEX: 99 9B 8A D6 6E
+             * BIN: 1^0011001 10011011 10^00101^0 1101^0110 01^101110
+             */
+
+            // 这部分的位移操作是为了修正数据在内存中的'bits'到相应的正确位置
+            uint8_t sign = 0;
+
+            uint32_t tmp = 0;
+            uint16_t year = 0;
+            uint8_t month = 0;
+            uint8_t day = 0;
+            uint8_t hour = 0;
+            uint8_t minute = 0;
+            uint8_t second = 0;
+
+            // 计算得到数据的符号
+            tmp = read_uint3(buf + cursor);
+            sign = *(uint8_t *)&tmp;
+            if (sign & 0x80) {
+                sign = 1;
+            } else {
+                sign = -1;
+            }
+
+            // 计算 year * 13 + month
+            tmp = tmp & 0x00C0FF7F;
+            tmp = ntohl(tmp);
+            tmp = tmp >> 14; // 没有用的垃圾位数清楚掉
+
+            year = tmp / 13;
+            month = tmp % 13;
+
+            // 计算 day
+            day = *(buf + 2);
+            day = (day & 0x3E) >> 1;
+
+            tmp = read_uint4(buf + cursor + 1);
+            tmp = ntohl(tmp);
+            hour = (tmp >> 12) & 0x0000001F;
+            minute = (tmp >> 6) & 0x0000003F;
+            second = tmp & 0x0000003F;
+
+            cursor += 5;
+            printf("DATETIME2: %c%4u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
+        }
+        break;
     case MYSQL_TYPE_DATE:
     case MYSQL_TYPE_DATETIME:
-    case MYSQL_TYPE_DATETIME2:
     case MYSQL_TYPE_TIMESTAMP:
         {
             uint8_t len;
