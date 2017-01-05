@@ -8,6 +8,11 @@ int16_t read_int2(const char *buf)
     return *(int16_t *)buf;
 }
 
+uint16_t read_uint2(const char *buf)
+{
+    return *(uint16_t *)buf;
+}
+
 // 读取3位整型
 int32_t read_int3(const char *buf)
 {
@@ -28,10 +33,24 @@ int32_t read_int3(const char *buf)
     return tmp;
 }
 
+uint32_t read_uint3(const char *buf)
+{
+    uint32_t tmp = 0;
+
+    memcpy(&tmp, buf, 3);
+
+    return tmp;
+}
+
 // 读取一个4位整型
 int32_t read_int4(const char *buf)
 {
     return *(int32_t *)buf;
+}
+
+uint32_t read_uint4(const char *buf)
+{
+    return *(uint32_t *)buf;
 }
 
 // 读取6位整型
@@ -44,10 +63,24 @@ int64_t read_int6(const char *buf)
     return tmp;
 }
 
+uint64_t read_uint6(const char *buf)
+{
+    uint64_t tmp = 0;
+
+    memcpy(&tmp, buf, 6);
+
+    return tmp;
+}
+
 // 读取8位整型
 int64_t read_int8(const char *buf)
 {
     return *(int64_t *)buf;
+}
+
+uint64_t read_uint8(const char *buf)
+{
+    return *(uint64_t *)buf;
 }
 
 int get_length_encode_number(const char *buf, int *length)

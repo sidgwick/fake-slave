@@ -10,6 +10,13 @@ int32_t read_int4(const char *);
 int64_t read_int6(const char *);
 int64_t read_int8(const char *);
 
+uint16_t read_uint2(const char *);
+uint32_t read_uint3(const char *);
+uint32_t read_uint4(const char *);
+uint64_t read_uint6(const char *);
+uint64_t read_uint8(const char *);
+
+
 int get_length_encode_number(const char *buf, int *length);
 char *get_length_encode_string(const char *buf, int *length);
 
