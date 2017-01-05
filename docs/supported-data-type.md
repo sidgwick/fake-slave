@@ -24,6 +24,7 @@
 |  DATETIME  |  MYSQL_TYPE_DATETIME    |  Untested |
 |  DATE      |  MYSQL_TYPE_DATE        |  Untested |
 |  TIME      |  MYSQL_TYPE_TIME        |  Untested |
+|  TIME      |  MYSQL_TYPE_TIME2       |  fully supported |
 |  YEAR      |  MYSQL_TYPE_YEAR        |  Untested |
 
 
