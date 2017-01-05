@@ -160,8 +160,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
         {
-            int16_t num = 0;
-            num = read_int2(buf + cursor);
+            uint16_t num = 0;
+            num = read_uint2(buf + cursor);
             cursor += 2;
             printf("SHORT INT: %d\n", num);
         }
@@ -364,14 +364,13 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
                 sign = -1;
             }
 
-            // 计算小时数
             tmp = ntohl(tmp);
             hour = ((tmp >> 20) & 0x00000FFF);
             minute = ((tmp >> 14) & 0x0000003F);
             second = ((tmp >> 8) & 0x0000003F);
 
             cursor += 3;
-            printf("TIME: %c %d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
+            printf("TIME: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
         }
         break;
     case MYSQL_TYPE_NULL:
