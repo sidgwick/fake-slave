@@ -266,10 +266,33 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             second = tmp & 0x0000003F;
 
             cursor += 5;
-            printf("DATETIME2: %c%4u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
+            printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
         }
         break;
     case MYSQL_TYPE_DATE:
+        {
+            /*
+             * time = self.packet.read_uint24()
+             *
+             * year = (time & ((1 << 15) - 1) << 9) >> 9
+             * month = (time & ((1 << 4) - 1) << 5) >> 5
+             * day = (time & ((1 << 5) - 1))
+             */
+            uint32_t tmp = 0;
+
+            tmp = read_uint3(buf + cursor);
+            uint16_t year = 0;
+            uint8_t month = 0;
+            uint8_t day = 0;
+
+            year = (tmp & ((1 << 15) - 1) << 9) >> 9;
+            month = (tmp & ((1 << 4) - 1) << 5) >> 5;
+            day = (tmp & ((1 << 5) - 1));
+
+            cursor += 3;
+            printf("DATE: %4u-%02u-%02u\n", year, month, day);
+        }
+        break;
     case MYSQL_TYPE_DATETIME:
     case MYSQL_TYPE_TIMESTAMP:
         {
