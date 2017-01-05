@@ -228,7 +228,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
              */
 
             // 这部分的位移操作是为了修正数据在内存中的'bits'到相应的正确位置
-            uint8_t sign = 0;
+            int8_t sign = 0;
 
             uint32_t tmp = 0;
             uint16_t year = 0;
@@ -240,7 +240,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
             // 计算得到数据的符号
             tmp = read_uint3(buf + cursor);
-            sign = *(uint8_t *)&tmp;
+            sign = *(int8_t *)&tmp;
             if (sign & 0x80) {
                 sign = 1;
             } else {
@@ -326,34 +326,52 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         }
         break;
     case MYSQL_TYPE_TIME:
+        {
+            /*
+               def __read_time(self):
+               time = self.packet.read_uint24()
+               date = datetime.timedelta(
+               hours=int(time / 10000),
+               minutes=int((time % 10000) / 100),
+               seconds=int(time % 100))
+               return date
+               */
+        }
+        break;
     case MYSQL_TYPE_TIME2:
         {
-            uint8_t len;
-            uint8_t is_negative = 0;
-            uint32_t day = 0;
+            /*
+             * 1 bit sign    (1= non-negative, 0= negative)
+             * 1 bit unused  (reserved for future extensions)
+             * 10 bits hour   (0-838)
+             * 6 bits minute (0-59)
+             * 6 bits second (0-59)
+             * ---------------------
+             * 24 bits = 3 bytes
+             */
+            uint32_t tmp = 0;
+            int8_t sign = 0;
             uint8_t hour = 0;
             uint8_t minute = 0;
             uint8_t second = 0;
-            uint32_t micro_second = 0;
 
-            len = *(buf + cursor++);
-            if (len > 0) {
-                is_negative = *(buf + cursor++);
-                day = read_int4(buf + cursor);
-                cursor += 4;
-                hour = *(buf + cursor++);
-                minute = *(buf + cursor++);
-                second = *(buf + cursor++);
-            }
-            if (len > 8) {
-                micro_second = read_int4(buf + cursor);
-                cursor += 4;
+            tmp = read_uint3(buf + cursor);
+
+            // 确定符号位
+            if (*(char *)&tmp & 0x80) {
+                sign = 1;
+            } else {
+                sign = -1;
             }
 
-            char c = is_negative ? '-' : ' ';
+            // 计算小时数
+            tmp = ntohl(tmp);
+            hour = ((tmp >> 20) & 0x00000FFF);
+            minute = ((tmp >> 14) & 0x0000003F);
+            second = ((tmp >> 8) & 0x0000003F);
 
-            printf("TIME: %c%d %d:%d:%d.%d\n", c, day, hour, minute, second, micro_second);
-
+            cursor += 3;
+            printf("TIME: %c %d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
         }
         break;
     case MYSQL_TYPE_NULL:
