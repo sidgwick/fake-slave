@@ -79,7 +79,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     int cursor = 0;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
-    printf("Column def: %02x, ID: %d value: ", column_def, column_id);
+    printf("\e[43;31mCOLUMN DEF\e[0m: %02x, ID: %d value: ", column_def, column_id);
     print_memory(buf, 20);
 
     switch (column_def) {
@@ -226,7 +226,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
             len = *(buf + cursor++);
             if (len > 0) {
-                year = read_int2(buf + cursor);
+                year = read_uint2(buf + cursor);
                 cursor += 2;
                 month = *(buf + cursor++);
                 day = *(buf + cursor++);
@@ -237,11 +237,11 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
                 second = *(buf + cursor++);
             }
             if (len > 7) {
-                micro_second = read_int4(buf + cursor);
+                micro_second = read_uint4(buf + cursor);
                 cursor += 4;
             }
 
-            printf("DATETIME: %d-%d-%d %d:%d:%d.%d\n", year, month, day, hour, minute, second, micro_second);
+            printf("DATETIME(%d): %u-%u-%u %u:%u:%u.%u\n", len, year, month, day, hour, minute, second, micro_second);
         }
         break;
     case MYSQL_TYPE_TIME:
