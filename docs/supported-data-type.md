@@ -18,6 +18,8 @@
 
 |  Type      |  Binlog Type            |  Status          |
 | ---------- | ----------------------- | ---------------- |
+|  TIMESTAMP |  MYSQL_TYPE_TIMESTAMP2  |  fully supported |
+|  DATETIME  |  MYSQL_TYPE_DATETIME2   |  fully supported |
 |  TIMESTAMP |  MYSQL_TYPE_TIMESTAMP   |  Untested |
 |  DATETIME  |  MYSQL_TYPE_DATETIME    |  Untested |
 |  DATE      |  MYSQL_TYPE_DATE        |  Untested |
