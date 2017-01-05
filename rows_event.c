@@ -328,14 +328,25 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TIME:
         {
             /*
-               def __read_time(self):
-               time = self.packet.read_uint24()
-               date = datetime.timedelta(
-               hours=int(time / 10000),
-               minutes=int((time % 10000) / 100),
-               seconds=int(time % 100))
-               return date
-               */
+             * time = self.packet.read_uint24()
+             * hours=int(time / 10000),
+             * minutes=int((time % 10000) / 100),
+             * seconds=int(time % 100))
+             */
+            uint32_t tmp = 0;
+            uint8_t hour = 0;
+            uint8_t minute = 0;
+            uint8_t second = 0;
+
+            tmp = read_uint3(buf + cursor);
+            tmp = ntohl(tmp);
+
+            hour = tmp / 10000;
+            minute = ((tmp % 10000) / 100);
+            second = tmp % 100;
+
+            cursor += 3;
+            printf("TIME: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
         }
         break;
     case MYSQL_TYPE_TIME2:
@@ -370,7 +381,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
             second = ((tmp >> 8) & 0x0000003F);
 
             cursor += 3;
-            printf("TIME: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
+            printf("TIME2: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
         }
         break;
     case MYSQL_TYPE_NULL:
