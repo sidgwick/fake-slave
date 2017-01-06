@@ -156,7 +156,6 @@ int read_mysql_datetime2(const char *buf)
     minute = (tmp >> 6) & 0x0000003F;
     second = tmp & 0x0000003F;
 
-
     printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
 
     return 0;
@@ -195,6 +194,33 @@ int read_mysql_int24(const char *buf)
     iv = read_int3(buf);
 
     printf("INT24 %d\n", iv);
+
+    return 0;
+}
+
+int read_mysql_tiny(const char *buf)
+{
+    printf("TINY INT: %d\n", *buf);
+
+    return 0;
+}
+
+int read_mysql_short(const char *buf)
+{
+    uint16_t num = 0;
+
+    num = read_uint2(buf);
+    printf("SHORT INT: %d\n", num);
+
+    return 0;
+}
+
+int read_mysql_longlong(const char *buf)
+{
+    int64_t num = 0;
+
+    num = read_int8(buf);
+    printf("LONG LONG INT: %ld\n", num);
 
     return 0;
 }

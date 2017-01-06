@@ -102,7 +102,6 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         cursor += read_mysql_newdecimal(buf + cursor, meta);
         break;
     case MYSQL_TYPE_STRING:
-    case MYSQL_TYPE_VARCHAR:
     case MYSQL_TYPE_VAR_STRING:
     case MYSQL_TYPE_ENUM:
     case MYSQL_TYPE_SET:
@@ -112,32 +111,24 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TINY_BLOB:
     case MYSQL_TYPE_GEOMETRY:
     case MYSQL_TYPE_BIT:
+        printf("Not support yet\n");
+        break;
+    case MYSQL_TYPE_VARCHAR:
         // column meta info
         meta = get_column_meta_def(ev->table_map, column_id);
         cursor += read_mysql_varchar(buf + cursor, meta);
         break;
     case MYSQL_TYPE_TINY:
-        {
-            char num = *(buf + cursor++);
-            printf("TINY INT: %d\n", num);
-        }
+        read_mysql_tiny(buf + cursor++);
         break;
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
-        {
-            uint16_t num = 0;
-            num = read_uint2(buf + cursor);
-            cursor += 2;
-            printf("SHORT INT: %d\n", num);
-        }
+        read_mysql_short(buf + cursor);
+        cursor += 2;
         break;
     case MYSQL_TYPE_LONGLONG:
-        {
-            int64_t num = 0;
-            num = read_int8(buf + cursor);
-            cursor += 8;
-            printf("LONG LONG INT: %ld\n", num);
-        }
+        read_mysql_longlong(buf + cursor);
+        cursor += 8;
         break;
     case MYSQL_TYPE_DOUBLE:
         read_mysql_double(buf + cursor);
