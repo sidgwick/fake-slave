@@ -182,7 +182,6 @@ int read_mysql_long(const char *buf)
     // long int.
     int iv = 0;
     iv = read_int4(buf);
-    iv = ntohl(iv);
 
     printf("LONG %d\n", iv);
 
@@ -195,7 +194,60 @@ int read_mysql_int24(const char *buf)
     int iv = 0;
     iv = read_int3(buf);
 
-    printf("MEDIUM %d\n", iv);
+    printf("INT24 %d\n", iv);
 
     return 0;
+}
+
+int read_mysql_newdecimal(const char *buf, const char *meta)
+{
+    unsigned char precision = *meta;
+    unsigned char scale = *(meta + 1);
+
+    return decimal_number(buf, precision, scale);
+}
+
+int read_mysql_float(const char *buf)
+{
+    float f;
+
+    f = read_float(buf);
+    printf("FLOAT: %f\n", f);
+
+    return 0;
+}
+
+int read_mysql_double(const char *buf)
+{
+    double d;
+
+    d = read_double(buf);
+    printf("DOUBLE %lf\n", d);
+
+    return 0;
+}
+
+int read_mysql_varchar(const char *buf, const char *meta)
+{
+    // varchar
+    int tmp = 0;
+    char *val;
+
+    // 1st byte is type, 2nd byte is length.
+    unsigned char prefix_num_length = *(meta + 1);
+
+    if (prefix_num_length > 0) {
+        // length of length encode string #mysql bug 37426#
+        memcpy(&tmp, buf, prefix_num_length);
+
+        val = malloc(sizeof(char) * tmp);
+        memcpy(val, buf + prefix_num_length, tmp);
+        tmp += prefix_num_length;
+    } else {
+        val = get_length_encode_string(buf, &tmp);
+    }
+
+    printf("VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
+
+    return tmp;
 }

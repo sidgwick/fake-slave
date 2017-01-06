@@ -42,7 +42,13 @@ int read_mysql_time2(const char *buf);
 int read_mysql_date(const char *buf);
 int read_mysql_datetime2(const char *buf);
 int read_mysql_timestamp2(const char *buf);
+
 int read_mysql_long(const char *buf);
 int read_mysql_int24(const char *buf);
+int read_mysql_newdecimal(const char *buf, const char *meta);
+int read_mysql_float(const char *buf);
+int read_mysql_double(const char *buf);
+
+int read_mysql_varchar(const char *buf, const char *meta);
 
 #endif

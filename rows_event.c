@@ -10,7 +10,6 @@
 #include "query.h"
 #include "binary_type.h"
 #include "binlog.h"
-#include "decimal.h"
 #include "tools.h"
 #include "debug.h"
 
@@ -91,19 +90,16 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_INT24:
         read_mysql_int24(buf + cursor);
-        cursor += 4;
+        cursor += 3;
         break;
     case MYSQL_TYPE_DECIMAL:
+        printf("Not support yet\n");
+        break;
     case MYSQL_TYPE_NEWDECIMAL:
-        {
-            // column meta info
-            // 1st byte is precision, 2nd byte is scale.
-            char *meta = get_column_meta_def(ev->table_map, column_id);
-            unsigned char precision = *meta;
-            unsigned char scale = *(meta + 1);
-
-            cursor += decimal_number(buf + cursor, precision, scale);
-        }
+        // column meta info
+        // 1st byte is precision, 2nd byte is scale.
+        meta = get_column_meta_def(ev->table_map, column_id);
+        cursor += read_mysql_newdecimal(buf + cursor, meta);
         break;
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VARCHAR:
@@ -116,30 +112,9 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TINY_BLOB:
     case MYSQL_TYPE_GEOMETRY:
     case MYSQL_TYPE_BIT:
-        {
-            // varchar
-            int tmp = 0;
-            char *val;
-
-            // column meta info
-            char *meta = get_column_meta_def(ev->table_map, column_id);
-            unsigned char prefix_num_length = *(meta + 1); // 1st byte is type, 2nd byte is length.
-
-            if (prefix_num_length > 0) {
-                // length of length encode string #mysql bug 37426#
-                memcpy(&tmp, buf, prefix_num_length);
-                cursor += prefix_num_length;
-
-                val = malloc(sizeof(char) * tmp);
-                memcpy(val, buf + cursor, tmp);
-                cursor += tmp;
-            } else {
-                val = get_length_encode_string(buf + cursor, &tmp);
-                cursor += tmp;
-            }
-
-            printf("VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
-        }
+        // column meta info
+        meta = get_column_meta_def(ev->table_map, column_id);
+        cursor += read_mysql_varchar(buf + cursor, meta);
         break;
     case MYSQL_TYPE_TINY:
         {
@@ -165,25 +140,16 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         }
         break;
     case MYSQL_TYPE_DOUBLE:
-        {
-            double d;
-            d = read_int8(buf + cursor);
-            cursor += 8;
-            printf("DOUBLE %lf\n", d);
-        }
+        read_mysql_double(buf + cursor);
+        cursor += 8;
         break;
     case MYSQL_TYPE_FLOAT:
-        {
-            float f;
-            f = read_int4(buf + cursor);
-            cursor += 4;
-            printf("FLOAT: %f\n", f);
-        }
+        read_mysql_float(buf + cursor);
+        cursor += 4;
         break;
     case MYSQL_TYPE_TIMESTAMP2:
         read_mysql_timestamp2(buf + cursor);
         cursor += 4;
-
         break;
     case MYSQL_TYPE_DATETIME2:
         read_mysql_datetime2(buf + cursor);

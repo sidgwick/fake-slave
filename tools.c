@@ -2,6 +2,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// 读取 float
+float read_float(const char *buf)
+{
+    return *(float *)buf;
+}
+
+// 读取 double
+double read_double(const char *buf)
+{
+    return *(double *)buf;
+}
+
 // 读取2位整型
 int16_t read_int2(const char *buf)
 {

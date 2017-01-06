@@ -4,6 +4,9 @@
 
 #define TOOLS_H
 
+float read_float(const char *buf);
+double read_double(const char *buf);
+
 int16_t read_int2(const char *);
 int32_t read_int3(const char *);
 int32_t read_int4(const char *);
