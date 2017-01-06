@@ -162,11 +162,13 @@ int read_datetime2(const char *buf)
     return 0;
 }
 
+// TIMESTAMP: A four-byte integer representing seconds UTC since the epoch ('1970-01-01 00:00:00' UTC)
+// TIMESTAMP encoding for nonfractional part: Same as before 5.6.4, except big endian rather than little endian
 int read_timestamp2(const char *buf)
 {
     uint32_t value = 0;
 
-    // 此处小端序? 我擦
+    // big endian
     value = read_int4(buf);
     value = ntohl(value);
 
