@@ -92,29 +92,11 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         read_mysql_int24(buf + cursor);
         cursor += 3;
         break;
-    case MYSQL_TYPE_DECIMAL:
-        printf("Not support yet\n");
-        break;
     case MYSQL_TYPE_NEWDECIMAL:
-        // column meta info
-        // 1st byte is precision, 2nd byte is scale.
         meta = get_column_meta_def(ev->table_map, column_id);
         cursor += read_mysql_newdecimal(buf + cursor, meta);
         break;
-    case MYSQL_TYPE_STRING:
-    case MYSQL_TYPE_VAR_STRING:
-    case MYSQL_TYPE_ENUM:
-    case MYSQL_TYPE_SET:
-    case MYSQL_TYPE_LONG_BLOB:
-    case MYSQL_TYPE_MEDIUM_BLOB:
-    case MYSQL_TYPE_BLOB:
-    case MYSQL_TYPE_TINY_BLOB:
-    case MYSQL_TYPE_GEOMETRY:
-    case MYSQL_TYPE_BIT:
-        printf("Not support yet\n");
-        break;
     case MYSQL_TYPE_VARCHAR:
-        // column meta info
         meta = get_column_meta_def(ev->table_map, column_id);
         cursor += read_mysql_varchar(buf + cursor, meta);
         break;
@@ -150,10 +132,6 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         read_mysql_date(buf + cursor);
         cursor += 3;
         break;
-    case MYSQL_TYPE_DATETIME:
-    case MYSQL_TYPE_TIMESTAMP:
-        printf("Not support yet\n");
-        break;
     case MYSQL_TYPE_TIME:
         read_mysql_time(buf + cursor);
         cursor += 3;
@@ -162,6 +140,19 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         read_mysql_time2(buf + cursor);
         cursor += 3;
         break;
+    case MYSQL_TYPE_STRING:
+    case MYSQL_TYPE_VAR_STRING:
+    case MYSQL_TYPE_ENUM:
+    case MYSQL_TYPE_SET:
+    case MYSQL_TYPE_LONG_BLOB:
+    case MYSQL_TYPE_MEDIUM_BLOB:
+    case MYSQL_TYPE_BLOB:
+    case MYSQL_TYPE_TINY_BLOB:
+    case MYSQL_TYPE_GEOMETRY:
+    case MYSQL_TYPE_BIT:
+    case MYSQL_TYPE_DECIMAL:
+    case MYSQL_TYPE_DATETIME:
+    case MYSQL_TYPE_TIMESTAMP:
     case MYSQL_TYPE_NULL:
         printf("Not support yet\n");
         break;

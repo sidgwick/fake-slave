@@ -227,6 +227,7 @@ int read_mysql_longlong(const char *buf)
 
 int read_mysql_newdecimal(const char *buf, const char *meta)
 {
+    // 1st byte is precision, 2nd byte is scale.
     unsigned char precision = *meta;
     unsigned char scale = *(meta + 1);
 
