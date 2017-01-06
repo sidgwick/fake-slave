@@ -41,7 +41,7 @@ int read_time(const char *buf);
 int read_time2(const char *buf);
 int read_date(const char *buf);
 int read_datetime2(const char *buf);
-int read_timestamp2(const char *buf, const char *meta);
+int read_timestamp2(const char *buf);
 int read_longint(const char *buf);
 
 #endif

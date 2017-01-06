@@ -188,9 +188,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         }
         break;
     case MYSQL_TYPE_TIMESTAMP2:
-        // column meta info
-        meta = get_column_meta_def(ev->table_map, column_id);
-        cursor += read_timestamp2(buf + cursor, meta);
+        read_timestamp2(buf + cursor);
+        cursor += 4;
 
         break;
     case MYSQL_TYPE_DATETIME2:

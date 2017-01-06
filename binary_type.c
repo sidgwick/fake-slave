@@ -162,22 +162,17 @@ int read_datetime2(const char *buf)
     return 0;
 }
 
-int read_timestamp2(const char *buf, const char *meta)
+int read_timestamp2(const char *buf)
 {
     uint32_t value = 0;
-    uint32_t nano = 0;
-    uint8_t nano_len = 0;
-
-    nano_len = (*meta + 1) / 2;
 
     // 此处小端序? 我擦
     value = read_int4(buf);
     value = ntohl(value);
-    memcpy(&nano, buf + 4, nano_len);
 
-    printf("TIMESTAMP2: %u.%u\n", value, nano);
+    printf("TIMESTAMP2: %u\n", value);
     
-    return (nano_len + 4);
+    return 0;
 }
 
 int read_longint(const char *buf)
