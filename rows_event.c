@@ -74,7 +74,6 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
     return NULL;
 }
 
-
 // 取 row 里面对应某个 column_id 的数据
 int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 {
@@ -87,18 +86,12 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 
     switch (column_def) {
     case MYSQL_TYPE_LONG:
-        read_longint(buf + cursor);
+        read_mysql_long(buf + cursor);
         cursor += 4;
         break;
     case MYSQL_TYPE_INT24:
-        {
-            // long int.
-            int iv = 0;
-            iv = read_int3(buf);
-            cursor += 3;
-
-            printf("MEDIUM %d\n", iv);
-        }
+        read_mysql_int24(buf + cursor);
+        cursor += 4;
         break;
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_NEWDECIMAL:
@@ -188,16 +181,16 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         }
         break;
     case MYSQL_TYPE_TIMESTAMP2:
-        read_timestamp2(buf + cursor);
+        read_mysql_timestamp2(buf + cursor);
         cursor += 4;
 
         break;
     case MYSQL_TYPE_DATETIME2:
-        read_datetime2(buf + cursor);
+        read_mysql_datetime2(buf + cursor);
         cursor += 5;
         break;
     case MYSQL_TYPE_DATE:
-        read_date(buf + cursor);
+        read_mysql_date(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_DATETIME:
@@ -205,11 +198,11 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         printf("Not support yet\n");
         break;
     case MYSQL_TYPE_TIME:
-        read_time(buf + cursor);
+        read_mysql_time(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_TIME2:
-        read_time2(buf + cursor);
+        read_mysql_time2(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_NULL:

@@ -15,7 +15,7 @@
 #include "tools.h"
 #include "debug.h"
 
-int read_time(const char *buf)
+int read_mysql_time(const char *buf)
 {
     /*
      * time = self.packet.read_uint24()
@@ -36,11 +36,11 @@ int read_time(const char *buf)
     second = tmp % 100;
 
     printf("TIME: %d:%d:%d\n", hour, minute, second);
-    
+
     return 0;
 }
 
-int read_time2(const char *buf)
+int read_mysql_time2(const char *buf)
 {
     /*
      * 1 bit sign    (1= non-negative, 0= negative)
@@ -72,11 +72,11 @@ int read_time2(const char *buf)
     second = ((tmp >> 8) & 0x0000003F);
 
     printf("TIME2: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
-    
+
     return 0;
 }
 
-int read_date(const char *buf)
+int read_mysql_date(const char *buf)
 {
     /*
      * time = self.packet.read_uint24()
@@ -97,11 +97,11 @@ int read_date(const char *buf)
     day = (tmp & ((1 << 5) - 1));
 
     printf("DATE: %4u-%02u-%02u\n", year, month, day);
-    
+
     return 0;
 }
 
-int read_datetime2(const char *buf)
+int read_mysql_datetime2(const char *buf)
 {
     /*
      * 1 bit  sign            (1= non-negative, 0= negative)
@@ -158,13 +158,13 @@ int read_datetime2(const char *buf)
 
 
     printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
-    
+
     return 0;
 }
 
 // TIMESTAMP: A four-byte integer representing seconds UTC since the epoch ('1970-01-01 00:00:00' UTC)
 // TIMESTAMP encoding for nonfractional part: Same as before 5.6.4, except big endian rather than little endian
-int read_timestamp2(const char *buf)
+int read_mysql_timestamp2(const char *buf)
 {
     uint32_t value = 0;
 
@@ -173,11 +173,11 @@ int read_timestamp2(const char *buf)
     value = ntohl(value);
 
     printf("TIMESTAMP2: %u\n", value);
-    
+
     return 0;
 }
 
-int read_longint(const char *buf)
+int read_mysql_long(const char *buf)
 {
     // long int.
     int iv = 0;
@@ -185,6 +185,17 @@ int read_longint(const char *buf)
     iv = ntohl(iv);
 
     printf("LONG %d\n", iv);
-    
+
+    return 0;
+}
+
+int read_mysql_int24(const char *buf)
+{
+    // long int.
+    int iv = 0;
+    iv = read_int3(buf);
+
+    printf("MEDIUM %d\n", iv);
+
     return 0;
 }

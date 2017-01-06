@@ -37,11 +37,12 @@
 #define MYSQL_TYPE_STRING 0xfe
 #define MYSQL_TYPE_GEOMETRY 0xff
 
-int read_time(const char *buf);
-int read_time2(const char *buf);
-int read_date(const char *buf);
-int read_datetime2(const char *buf);
-int read_timestamp2(const char *buf);
-int read_longint(const char *buf);
+int read_mysql_time(const char *buf);
+int read_mysql_time2(const char *buf);
+int read_mysql_date(const char *buf);
+int read_mysql_datetime2(const char *buf);
+int read_mysql_timestamp2(const char *buf);
+int read_mysql_long(const char *buf);
+int read_mysql_int24(const char *buf);
 
 #endif
