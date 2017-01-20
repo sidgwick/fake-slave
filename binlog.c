@@ -339,7 +339,6 @@ int run_binlog_stream(server_info *info)
         cursor = 0;
         // 1. 最少需要能把packet头部, binlog event头部解析出来, 没有的话, 就需要再向服务器读
         while (cursor + (4 + 19 + 1) < rbuflen) {
-            printf("\e[34mCUROSR\e[0m: %d\n", cursor);
             int length = 0; // packet length
             unsigned char sequence_id = 0; // packet sequence id
 

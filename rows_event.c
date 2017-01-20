@@ -80,8 +80,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     char *meta = NULL;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
-    printf("\e[43;31mCOLUMN DEF\e[0m: %02x, ID: %d value: ", column_def, column_id);
-    print_memory(buf, 20);
+    printf("DEF: %02x, ID: %d, VALUE: ", column_def, column_id);
+    // print_memory(buf, 20);
 
     switch (column_def) {
     case MYSQL_TYPE_LONG:
@@ -168,7 +168,8 @@ int fetch_a_row(struct rows_event *ev, const char *buf)
 {
     int cursor = 0;
     int tmp = 0;
-    static int update_row = 1;
+    static int update_row = 1; // update 操作, 新老数据区分
+    update_row++;
 
     // string.var_len       nul-bitmap, length (bits set in 'columns-present-bitmap1'+7)/8
     // string.var_len       value of each field as defined in table-map
@@ -181,7 +182,10 @@ int fetch_a_row(struct rows_event *ev, const char *buf)
     memcpy(null_bitmap, buf + cursor, tmp);
     cursor += tmp;
 
-    printf("Bit map:"); print_memory(null_bitmap, tmp);
+    // NOT UPDATE NEW, for pretty output
+    if (ev->header.event_type != UPDATE_ROWS_EVENTv1 || (update_row % 2 == 0)) {
+        printf("NORMAL ROW:\n");
+    }
 
     // loop to get column value
     for (int i = 0; i < ev->column_count; i++) {
@@ -189,8 +193,8 @@ int fetch_a_row(struct rows_event *ev, const char *buf)
     }
 
     // UPDATE NEW VALUES
-    if (ev->header.event_type == UPDATE_ROWS_EVENTv1 && (++update_row % 2 == 0)) {
-        printf("Update new row:\n");
+    if (ev->header.event_type == UPDATE_ROWS_EVENTv1 && (update_row % 2 == 0)) {
+        printf("UPDATE NEW:\n");
         cursor += fetch_a_row(ev, buf + cursor);
     }
 
@@ -262,13 +266,14 @@ int rows_event(struct rows_event *ev, const char *buf)
         break;
     }
 
-    printf("Table id: %ld\n", ev->table_id);
+    printf("Table id: %ld(%ld-%s)\n", ev->table_id, ev->table_map.table_id, ev->table_map.table_name);
     printf("Flags: ");print_memory((char *)&ev->flags, 2);
     printf("Column count: %d\n", ev->column_count);
 #endif
 
     // rows.
     while (cursor < (ev->header.event_size - 19)) {
+        printf("Next row coluser\n");
         cursor += fetch_a_row(ev, buf + cursor);
     }
 
