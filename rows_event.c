@@ -266,7 +266,7 @@ int rows_event(struct rows_event *ev, const char *buf)
         break;
     }
 
-    printf("Table id: %ld(%ld-%s)\n", ev->table_id, ev->table_map.table_id, ev->table_map.table_name);
+    printf("Table id: %ld(%ld-[%s, %s])\n", ev->table_id, ev->table_map.table_id, ev->table_map.schema_name, ev->table_map.table_name);
     printf("Flags: ");print_memory((char *)&ev->flags, 2);
     printf("Column count: %d\n", ev->column_count);
 #endif
