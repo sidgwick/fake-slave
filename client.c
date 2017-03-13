@@ -9,6 +9,7 @@
 #include "client.h"
 #include "binlog.h"
 #include "query.h"
+#include "read_config.h"
 
 server_info info;
 
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
     int sockfd;
     struct sockaddr_in server_address;
 
+    read_config(&info);
     parse_command_pareters(argc, argv);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
