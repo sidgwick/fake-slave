@@ -5,7 +5,7 @@
 
 #define BUF_SIZE 1024
 
-struct configure {
+struct mysql_server {
     int debug;
     char *host;
     char *user;
@@ -15,7 +15,7 @@ struct configure {
 };
 
 typedef struct {
-    struct configure config;
+    struct mysql_server master;
     int sockfd; // server socket
     int8_t protocol_version;
     char *server_version;

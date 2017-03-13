@@ -34,22 +34,22 @@ void parse_command_pareters(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "dh:u:p:D:P:")) != -1) {
         switch (opt) {
         case 'd':
-            info.config.debug = 1;
+            info.master.debug = 1;
             break;
         case 'h':
-            info.config.host = optarg;
+            info.master.host = optarg;
             break;
         case 'u':
-            info.config.user = optarg;
+            info.master.user = optarg;
             break;
         case 'p':
-            info.config.password = optarg;
+            info.master.password = optarg;
             break;
         case 'P':
-            info.config.port = atoi(optarg);
+            info.master.port = atoi(optarg);
             break;
         case 'D':
-            info.config.database = optarg;
+            info.master.database = optarg;
             break;
         default:
             usage(argv[0]);
@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     }
     bzero((char *)&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    inet_aton(info.config.host, &server_address.sin_addr);
-    server_address.sin_port = htons(info.config.port);
+    inet_aton(info.master.host, &server_address.sin_addr);
+    server_address.sin_port = htons(info.master.port);
 
     if (connect(sockfd, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
         perror("ERROR connecting: ");
