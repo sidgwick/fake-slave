@@ -204,9 +204,11 @@ int read_mysql_int24(const char *buf)
 
 int read_mysql_tiny(const char *buf)
 {
+#ifdef DEBUG
     printf("TINY INT: %d\n", *buf);
+#endif
 
-    return 0;
+    return *buf;
 }
 
 int read_mysql_short(const char *buf)
@@ -214,7 +216,9 @@ int read_mysql_short(const char *buf)
     uint16_t num = 0;
 
     num = read_uint2(buf);
+#ifdef DEBUG
     printf("SHORT INT: %d\n", num);
+#endif
 
     return 0;
 }
@@ -224,7 +228,9 @@ int read_mysql_longlong(const char *buf)
     int64_t num = 0;
 
     num = read_int8(buf);
+#ifdef DEBUG
     printf("LONG LONG INT: %ld\n", num);
+#endif
 
     return 0;
 }
@@ -238,24 +244,28 @@ char *read_mysql_newdecimal(const char *buf, const char *meta, int *cursor)
     return decimal_number(buf, precision, scale, cursor);
 }
 
-int read_mysql_float(const char *buf)
+float read_mysql_float(const char *buf)
 {
     float f;
 
     f = read_float(buf);
+#ifdef DEBUG
     printf("FLOAT: %f\n", f);
+#endif
 
-    return 0;
+    return f;
 }
 
-int read_mysql_double(const char *buf)
+double read_mysql_double(const char *buf)
 {
     double d;
 
     d = read_double(buf);
+#ifdef DEBUG
     printf("DOUBLE %lf\n", d);
+#endif
 
-    return 0;
+    return d;
 }
 
 int read_mysql_varchar(const char *buf, const char *meta)

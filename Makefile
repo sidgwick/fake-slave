@@ -1,6 +1,7 @@
 CC = gcc
 
-CFLAGS += -DDEBUG -g -Wall `mysql_config --cflags` `pkg-config --cflags json-c`
+CFLAGS += -g -Wall `mysql_config --cflags` `pkg-config --cflags json-c`
+# CFLAGS += -DDEBUG -g -Wall `mysql_config --cflags` `pkg-config --cflags json-c`
 LDFLAGS += -lssl -lcrypto `mysql_config --libs` `pkg-config --libs json-c`
 
 client: client.o connect.o packet.o tools.o query.o binary_type.o binlog.o rows_event.o decimal.o debug.o read_config.o

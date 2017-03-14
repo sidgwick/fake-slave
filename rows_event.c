@@ -82,8 +82,10 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     field_val *v = &va;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
+#ifdef DEBUG
     printf("DEF: %02x, ID: %d, VALUE: ", column_def, column_id);
     // print_memory(buf, 20);
+#endif
 
     v->type = column_def;
     switch (column_def) {
@@ -99,29 +101,29 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         meta = get_column_meta_def(ev->table_map, column_id);
         v->val.decimal = read_mysql_newdecimal(buf + cursor, meta, &cursor);
         break;
-    case MYSQL_TYPE_VARCHAR:
-        meta = get_column_meta_def(ev->table_map, column_id);
-        cursor += read_mysql_varchar(buf + cursor, meta);
-        break;
     case MYSQL_TYPE_TINY:
-        read_mysql_tiny(buf + cursor++);
+        v->val.integer = read_mysql_tiny(buf + cursor++);
         break;
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
-        read_mysql_short(buf + cursor);
+        v->val.integer = read_mysql_short(buf + cursor);
         cursor += 2;
         break;
     case MYSQL_TYPE_LONGLONG:
-        read_mysql_longlong(buf + cursor);
+        v->val.integer = read_mysql_longlong(buf + cursor);
         cursor += 8;
         break;
     case MYSQL_TYPE_DOUBLE:
-        read_mysql_double(buf + cursor);
+        v->val.double_num = read_mysql_double(buf + cursor);
         cursor += 8;
         break;
     case MYSQL_TYPE_FLOAT:
-        read_mysql_float(buf + cursor);
+        v->val.float_num = read_mysql_float(buf + cursor);
         cursor += 4;
+        break;
+    case MYSQL_TYPE_VARCHAR:
+        meta = get_column_meta_def(ev->table_map, column_id);
+        cursor += read_mysql_varchar(buf + cursor, meta);
         break;
     case MYSQL_TYPE_TIMESTAMP2:
         read_mysql_timestamp2(buf + cursor);

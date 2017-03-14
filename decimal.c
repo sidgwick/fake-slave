@@ -47,6 +47,18 @@ long int decimal_number_part(const char *buf, char len, int mask)
     return number;
 }
 
+char *decimal_as_string(char mask, long int integral, char *zero, long int fractional)
+{
+    char tmp_buf[100];
+    sprintf(tmp_buf, "%c%ld.%s%ld", (mask ? '-' : '\0'), integral, zero, fractional);
+
+    char *tmpp;
+    tmpp = malloc(sizeof(char) * strlen(tmp_buf) + 1);
+    strcpy(tmpp, tmp_buf);
+
+    return tmpp;
+}
+
 // TODO: negative number
 char *decimal_number(const char *buf, unsigned char precision, unsigned char scale, int *cursor)
 {
@@ -89,12 +101,5 @@ char *decimal_number(const char *buf, unsigned char precision, unsigned char sca
 
     *cursor = int_l + frac_l;
 
-    char tmp_buf[100];
-    sprintf(tmp_buf, "%c%ld.%s%ld", (mask ? '-' : '\0'), integral, zero, fractional);
-
-    char *tmpp;
-    tmpp = malloc(sizeof(char) * strlen(tmp_buf) + 1);
-    strcpy(tmpp, tmp_buf);
-
-    return tmpp;
+    return decimal_as_string(mask, integral, zero, fractional);
 }

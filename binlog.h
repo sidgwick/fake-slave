@@ -170,8 +170,10 @@ typedef struct field_value {
     char type;
     union {
         char *str;
-        int integer;
+        long long integer;
         char *decimal;
+        double double_num;
+        float float_num;
     } val;
     struct field_value *next;
 } field_val;
