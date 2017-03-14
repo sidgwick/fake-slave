@@ -217,51 +217,77 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
 
     switch (ev_header.event_type) {
     case UNKNOWN_EVENT:
+#ifdef DEBUG
         printf("UNKNOWN_EVENT\n");
+#endif
         break;
     case START_EVENT_V3:
+#ifdef DEBUG
         printf("START_EVENT_V3, Header length: %02X\n", get_post_header_length(START_EVENT_V3));
+#endif
         break;
     case QUERY_EVENT:
         query_ev.header = ev_header;
         query_event(&query_ev, buf);
         break;
     case STOP_EVENT:
+#ifdef DEBUG
         printf("STOP_EVENT, Header length: %02X\n", get_post_header_length(STOP_EVENT));
+#endif
         break;
     case ROTATE_EVENT:
         rotate_ev.header = ev_header;
         rotate_event(&rotate_ev, buf);
         break;
     case INTVAR_EVENT:
+#ifdef DEBUG
         printf("INTVAR_EVENT, Header length: %02X\n", get_post_header_length(INTVAR_EVENT));
+#endif
         break;
     case LOAD_EVENT:
+#ifdef DEBUG
         printf("LOAD_EVENT, Header length: %02X\n", get_post_header_length(LOAD_EVENT));
+#endif
         break;
     case SLAVE_EVENT:
+#ifdef DEBUG
         printf("SLAVE_EVENT, Header length: %02X\n", get_post_header_length(SLAVE_EVENT));
+#endif
         break;
     case CREATE_FILE_EVENT:
+#ifdef DEBUG
         printf("CREATE_FILE_EVENT, Header length: %02X\n", get_post_header_length(CREATE_FILE_EVENT));
+#endif
         break;
     case APPEND_BLOCK_EVENT:
+#ifdef DEBUG
         printf("APPEND_BLOCK_EVENT, Header length: %02X\n", get_post_header_length(APPEND_BLOCK_EVENT));
+#endif
         break;
     case EXEC_LOAD_EVENT:
+#ifdef DEBUG
         printf("EXEC_LOAD_EVENT, Header length: %02X\n", get_post_header_length(EXEC_LOAD_EVENT));
+#endif
         break;
     case DELETE_FILE_EVENT:
+#ifdef DEBUG
         printf("DELETE_FILE_EVENT, Header length: %02X\n", get_post_header_length(DELETE_FILE_EVENT));
+#endif
         break;
     case NEW_LOAD_EVENT:
+#ifdef DEBUG
         printf("NEW_LOAD_EVENT, Header length: %02X\n", get_post_header_length(NEW_LOAD_EVENT));
+#endif
         break;
     case RAND_EVENT:
+#ifdef DEBUG
         printf("RAND_EVENT, Header length: %02X\n", get_post_header_length(RAND_EVENT));
+#endif
         break;
     case USER_VAR_EVENT:
+#ifdef DEBUG
         printf("USER_VAR_EVENT, Header length: %02X\n", get_post_header_length(USER_VAR_EVENT));
+#endif
         break;
     case FORMAT_DESCRIPTION_EVENT:
         fmt_des_ev.header = ev_header;
@@ -272,14 +298,20 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         {
             uint64_t xid = 0;
             xid = read_int8(buf);
+#ifdef DEBUG
             printf("XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
+#endif
         }
         break;
     case BEGIN_LOAD_QUERY_EVENT:
+#ifdef DEBUG
         printf("BEGIN_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(BEGIN_LOAD_QUERY_EVENT));
+#endif
         break;
     case EXECUTE_LOAD_QUERY_EVENT:
+#ifdef DEBUG
         printf("EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
+#endif
         break;
     case TABLE_MAP_EVENT:
         table_map_ev.header = ev_header;
@@ -299,28 +331,44 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         rows_event(&rows_ev, buf);
         break;
     case INCIDENT_EVENT:
+#ifdef DEBUG
         printf("INCIDENT_EVENT, Header length: %02X\n", get_post_header_length(INCIDENT_EVENT));
+#endif
         break;
     case HEARTBEAT_EVENT:
+#ifdef DEBUG
         printf("HEARTBEAT_EVENT, Header length: %02X\n", get_post_header_length(HEARTBEAT_EVENT));
+#endif
         break;
     case IGNORABLE_EVENT:
+#ifdef DEBUG
         printf("IGNORABLE_EVENT, Header length: %02X\n", get_post_header_length(IGNORABLE_EVENT));
+#endif
         break;
     case ROWS_QUERY_EVENT:
+#ifdef DEBUG
         printf("ROWS_QUERY_EVENT, Header length: %02X\n", get_post_header_length(ROWS_QUERY_EVENT));
+#endif
         break;
     case GTID_EVENT:
+#ifdef DEBUG
         printf("GTID_EVENT, Header length: %02X\n", get_post_header_length(GTID_EVENT));
+#endif
         break;
     case ANONYMOUS_GTID_EVENT:
+#ifdef DEBUG
         printf("ANONYMOUS_GTID_EVENT, Header length: %02X\n", get_post_header_length(ANONYMOUS_GTID_EVENT));
+#endif
         break;
     case PREVIOUS_GTIDS_EVENT:
+#ifdef DEBUG
         printf("PREVIOUS_GTIDS_EVENT, Header length: %02X\n", get_post_header_length(PREVIOUS_GTIDS_EVENT));
+#endif
         break;
     default:
+#ifdef DEBUG
         printf("Unknow binlog event.\n");
+#endif
         break;
     }
 

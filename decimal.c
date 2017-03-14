@@ -48,7 +48,7 @@ long int decimal_number_part(const char *buf, char len, int mask)
 }
 
 // TODO: negative number
-int decimal_number(const char *buf, unsigned char precision, unsigned char scale)
+char *decimal_number(const char *buf, unsigned char precision, unsigned char scale, int *cursor)
 {
     int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 4};
     long int integral = 0;
@@ -83,7 +83,18 @@ int decimal_number(const char *buf, unsigned char precision, unsigned char scale
         zero[tmp] = '0';
     }
 
+#ifdef DEBUG
     printf("DECIMAL: %c%ld.%s%ld\n", (mask ? '-' : '\0'), integral, zero, fractional);
+#endif
 
-    return int_l + frac_l;
+    *cursor = int_l + frac_l;
+
+    char tmp_buf[100];
+    sprintf(tmp_buf, "%c%ld.%s%ld", (mask ? '-' : '\0'), integral, zero, fractional);
+
+    char *tmpp;
+    tmpp = malloc(sizeof(char) * strlen(tmp_buf) + 1);
+    strcpy(tmpp, tmp_buf);
+
+    return tmpp;
 }

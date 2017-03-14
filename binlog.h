@@ -166,6 +166,16 @@ struct rows_event {
     struct column_data *data;
 };
 
+typedef struct field_value {
+    char type;
+    union {
+        char *str;
+        int integer;
+        char *decimal;
+    } val;
+    struct field_value *next;
+} field_val;
+
 int run_binlog_stream(server_info *);
 int get_post_header_length(int);
 

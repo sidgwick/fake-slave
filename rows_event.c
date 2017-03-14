@@ -78,23 +78,26 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 {
     int cursor = 0;
     char *meta = NULL;
+    field_val va;
+    field_val *v = &va;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
     printf("DEF: %02x, ID: %d, VALUE: ", column_def, column_id);
     // print_memory(buf, 20);
 
+    v->type = column_def;
     switch (column_def) {
     case MYSQL_TYPE_LONG:
-        read_mysql_long(buf + cursor);
+        v->val.integer = read_mysql_long(buf + cursor);
         cursor += 4;
         break;
     case MYSQL_TYPE_INT24:
-        read_mysql_int24(buf + cursor);
+        v->val.integer = read_mysql_int24(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_NEWDECIMAL:
         meta = get_column_meta_def(ev->table_map, column_id);
-        cursor += read_mysql_newdecimal(buf + cursor, meta);
+        v->val.decimal = read_mysql_newdecimal(buf + cursor, meta, &cursor);
         break;
     case MYSQL_TYPE_VARCHAR:
         meta = get_column_meta_def(ev->table_map, column_id);
@@ -273,7 +276,9 @@ int rows_event(struct rows_event *ev, const char *buf)
 
     // rows.
     while (cursor < (ev->header.event_size - 19)) {
+#ifdef DEBUG
         printf("Next row coluser\n");
+#endif
         cursor += fetch_a_row(ev, buf + cursor);
     }
 

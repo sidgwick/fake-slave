@@ -3,6 +3,6 @@
 
 #define DIG_PER_DEC1 9
 
-int decimal_number(const char *buf, unsigned char precision, unsigned char scale);
+char *decimal_number(const char *buf, unsigned char precision, unsigned char scale, int *cursor);
 
-#endif          
+#endif

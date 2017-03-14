@@ -48,7 +48,7 @@ int read_mysql_int24(const char *buf);
 int read_mysql_tiny(const char *buf);
 int read_mysql_short(const char *buf);
 int read_mysql_longlong(const char *buf);
-int read_mysql_newdecimal(const char *buf, const char *meta);
+char *read_mysql_newdecimal(const char *buf, const char *meta, int *cursor);
 int read_mysql_float(const char *buf);
 int read_mysql_double(const char *buf);
 
