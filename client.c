@@ -4,11 +4,12 @@
 #include "query.h"
 #include "read_config.h"
 
-server_info info;
-
 int main(int argc, char *argv[])
 {
+    server_info info;
+
     read_config(&info);
+    // use command line parameter(if any) override configure file
     parse_command_pareters(argc, argv, &info);
 
     // initial connect to master
