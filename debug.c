@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "client.h"
-#include "handshake.h"
 #include "binlog.h"
 
 #ifdef DEBUG

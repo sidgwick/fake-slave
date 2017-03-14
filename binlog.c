@@ -3,7 +3,6 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <arpa/inet.h>
 
 #include "client.h"
@@ -339,17 +338,19 @@ int run_binlog_stream(server_info *info)
         cursor = 0;
         // 1. 最少需要能把packet头部, binlog event头部解析出来, 没有的话, 就需要再向服务器读
         while (cursor + (4 + 19 + 1) < rbuflen) {
+
+#ifdef DEBUG
             int length = 0; // packet length
             unsigned char sequence_id = 0; // packet sequence id
 
             length = read_int3(buf + cursor);
             sequence_id = *(buf + cursor + 3);
 
-            cursor += 4;
-
-#ifdef DEBUG
             printf("\e[31mBinlog packet\e[0m: length = %04d, sequence_id = %u\n", length, sequence_id);
 #endif
+            // packet length(3 bytes) + sequence_id(1 byte)
+            cursor += 4;
+
             // skip a 00-OK byte
             cursor += 1;
 
@@ -367,7 +368,9 @@ int run_binlog_stream(server_info *info)
             parse_binlog_events(ev_header, buf + cursor);
 
             cursor += ev_header.event_size - 19;
+#ifdef DEBUG
             puts("======================================");
+#endif
         }
 
         memcpy(buf, buf + cursor, rbuflen - cursor);
