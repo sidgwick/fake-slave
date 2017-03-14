@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <openssl/sha.h>
 
-#include "capability_flags.h"
-#include "character_set.h"
 #include "handshake.h"
 #include "packet.h"
 #include "client.h"
@@ -195,16 +193,16 @@ static int response_handshake_to_server(server_info *info)
     return 0;
 }
 
-int handshake_with_server(server_info *server_info) {
+int handshake_with_server(server_info *info) {
     uint32_t length = 0;
     uint32_t sequence_id = 0;
     int datalen;
     char buf[BUF_SIZE];
 
     // read the first packet from mysql server.
-    datalen = read(server_info->sockfd, buf, BUF_SIZE);
+    datalen = read(info->sockfd, buf, BUF_SIZE);
     if (datalen == -1) {
-        printf("Unable to read from the server, server socket is: %d", server_info->sockfd);
+        printf("Unable to read from the server, server socket is: %d", info->sockfd);
         perror(NULL);
         exit(1);
     } else if (datalen == 0) {
@@ -222,9 +220,9 @@ int handshake_with_server(server_info *server_info) {
     printf("Package sequence ID: %d\n", sequence_id);
 #endif
 
-    parse_handshake_body(buf + 4, length - 4, sequence_id, server_info);
+    parse_handshake_body(buf + 4, length - 4, sequence_id, info);
 
-    response_handshake_to_server(server_info);
+    response_handshake_to_server(info);
 
     return 0;
 }

@@ -1,6 +1,8 @@
 *.out
 *.o
 client
+TODO.md
+
 .ycm_extra_conf.py
 .ycm_extra_conf.pyc
 cscope.files

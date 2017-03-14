@@ -3,6 +3,7 @@
 
 #include "client.h"
 
-int read_config(server_info *config);
+int read_config(server_info *info);
+void parse_command_pareters(int argc, char *argv[], server_info *info);
 
 #endif

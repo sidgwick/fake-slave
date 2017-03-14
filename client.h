@@ -3,6 +3,15 @@
 
 #include <stdint.h>
 
+#define CLIENT_PROTOCOL_41 0x00000200
+
+#define CLIENT_PLUGIN_AUTH 0x00080000
+#define CLIENT_SECURE_CONNECTION 0x00008000
+#define CLIENT_CONNECT_WITH_DB 0x00000008
+#define CLIENT_DEPRECATE_EOF 0x01000000
+
+#define CHARSET_UTF_8 0x21 // 33, utf-8
+
 #define BUF_SIZE 1024
 
 struct mysql_server {

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <json.h>
 
 #include "client.h"
@@ -97,4 +98,49 @@ int read_config(server_info *config)
     json_object_put(json);
     free(buffer);
     return 0;
+}
+
+static void usage(char *name)
+{
+    fprintf(stderr, "%s\n", name);
+    fprintf(stderr,
+            "-P <num>      database port\n"
+            "-D <database> database name\n"
+            "-h <host>     database host\n"
+            "-u <user>     database username\n"
+            "-p <password> database password\n"
+            "-d            enable debug output\n"
+            );
+}
+
+// command line configure
+void parse_command_pareters(int argc, char *argv[], server_info *info)
+{
+    char opt;
+    // command line parameters
+    while ((opt = getopt(argc, argv, "dh:u:p:D:P:")) != -1) {
+        switch (opt) {
+        case 'd':
+            info->master.debug = 1;
+            break;
+        case 'h':
+            info->master.host = optarg;
+            break;
+        case 'u':
+            info->master.user = optarg;
+            break;
+        case 'p':
+            info->master.password = optarg;
+            break;
+        case 'P':
+            info->master.port = atoi(optarg);
+            break;
+        case 'D':
+            info->master.database = optarg;
+            break;
+        default:
+            usage(argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
 }

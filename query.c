@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "client.h"
-#include "capability_flags.h"
 #include "query.h"
 #include "packet.h"
 #include "binlog.h"
