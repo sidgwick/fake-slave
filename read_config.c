@@ -89,14 +89,14 @@ int read_config(server_info *config)
 
         // open log for write
         if (strcmp(key, "log") == 0) {
-            config->logfp = fopen(json_object_get_string(val), "a");
-            if (!config->logfp) {
+            logfp = fopen(json_object_get_string(val), "a");
+            if (!logfp) {
                 perror("unable to open log file for write");
                 exit(2);
             }
 
             // line buffered log file pointer
-            setlinebuf(config->logfp);
+            setlinebuf(logfp);
         }
     }
 
@@ -154,7 +154,7 @@ void parse_command_pareters(int argc, char *argv[], server_info *info)
         }
     }
 
-    if (fprintf(info->logfp, "[Info] read parameters from command line completed.\n") < 0) {
+    if (fprintf(logfp, "[Info] read parameters from command line completed.\n") < 0) {
         perror("[Error] unable to write to log file.\n");
         exit(2);
     }

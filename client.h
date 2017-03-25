@@ -15,6 +15,9 @@
 
 #define BUF_SIZE 1024
 
+
+FILE *logfp;
+
 struct mysql_server {
     short int debug;
     short int port;
@@ -27,7 +30,6 @@ struct mysql_server {
 
 typedef struct {
     struct mysql_server master;
-    FILE *logfp;
     int sockfd; // server socket
     int8_t protocol_version;
     char *server_version;
