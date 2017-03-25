@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <stdio.h>
 #include <stdint.h>
 
 #define CLIENT_PROTOCOL_41 0x00000200
@@ -26,6 +27,7 @@ struct mysql_server {
 
 typedef struct {
     struct mysql_server master;
+    FILE *logfp;
     int sockfd; // server socket
     int8_t protocol_version;
     char *server_version;

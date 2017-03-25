@@ -80,33 +80,28 @@ int read_config(server_info *config)
     }
 
     json_object_object_foreach(json, key, val) {
-        item_type = json_object_get_type(val);
-
-        switch (item_type) {
-        case json_type_null:
-            break;
-        case json_type_boolean:
-            break;
-        case json_type_double:
-            break;
-        case json_type_int:
-            break;
-        case json_type_array:
-            break;
-        case json_type_string:
-            break;
-        case json_type_object:
+        // master configure
+        if (strcmp(key, "master") == 0) {
             if (strcmp(key, "master") == 0) {
-                // master configure
                 config_master(&config->master, val);
             }
-            break;
+            continue;
+        }
+
+        // open log for write
+        if (strcmp(key, "log") == 0) {
+            config->logfp = fopen(json_object_get_string(val), "a");
         }
     }
 
     // free memory
     json_object_put(json);
     free(buffer);
+    if (fprintf(config->logfp, "[Info] read config from file completed.\n") < 0) {
+        perror("[Error] unable to write to log file.\n");
+        exit(2);
+    }
+    fflush(config->logfp);
     return 0;
 }
 
@@ -152,5 +147,10 @@ void parse_command_pareters(int argc, char *argv[], server_info *info)
             usage(argv[0]);
             exit(EXIT_FAILURE);
         }
+    }
+
+    if (fprintf(info->logfp, "[Info] read parameters from command line completed.\n") < 0) {
+        perror("[Error] unable to write to log file.\n");
+        exit(2);
     }
 }
