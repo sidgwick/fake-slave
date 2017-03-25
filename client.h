@@ -15,12 +15,13 @@
 #define BUF_SIZE 1024
 
 struct mysql_server {
-    int debug;
+    short int debug;
+    short int port;
+    int position;
     char *host;
     char *user;
     char *password;
     char *database;
-    short int port;
 };
 
 typedef struct {

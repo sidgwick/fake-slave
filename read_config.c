@@ -24,21 +24,31 @@ static int config_master(struct mysql_server *server, json_object *json)
 
         if (strcmp(key, "host") == 0) {
             server->host = buffer;
+            continue;
         }
         if (strcmp(key, "port") == 0) {
             server->port = (short)json_object_get_int(val);
+            continue;
         }
         if (strcmp(key, "user") == 0) {
             server->user = buffer;
+            continue;
         }
         if (strcmp(key, "password") == 0) {
             server->password = buffer;
+            continue;
         }
         if (strcmp(key, "database") == 0) {
             server->database = buffer;
+            continue;
         }
         if (strcmp(key, "debug") == 0) {
-            server->debug = (int)json_object_get_boolean(val);
+            server->debug = (short int)json_object_get_boolean(val);
+            continue;
+        }
+        if (strcmp(key, "position") == 0) {
+            server->position = json_object_get_int(val);
+            continue;
         }
     }
     return 0;
