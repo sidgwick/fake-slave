@@ -79,9 +79,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, server_i
     info->auth_plugin_name = malloc(sizeof(char) * strlen(buf));
     strcpy(info->auth_plugin_name, buf);
 
-#ifdef DEBUG
-    print_server_info(info);
-#endif
+    fprintf(logfp, "[Info] parse handshake package completed\n");
 
     return 0;
 }
@@ -167,13 +165,10 @@ static int response_handshake_to_server(server_info *info)
     tmp = (cursor - 4) | (1 << 24);
     memcpy(buf, &tmp, 4);
 
-#ifdef DEBUG
-    printf("Data send to server: \n");
-    print_memory(buf, cursor);
-#endif
-
     // send handshake response to server.
     write(sockfd, buf, cursor);
+
+    fprintf(logfp, "[Info] handshake response has been sent to server.\n");
 
     // make soure we login success
     if ((tmp = read(sockfd, buf, BUF_SIZE)) == -1) {
@@ -185,14 +180,11 @@ static int response_handshake_to_server(server_info *info)
     // check OK packet.
     ok_packet ok_pkt;
     if (parse_ok_packet(buf, &ok_pkt) == -1 || ok_pkt.header == 0xFE) {
-        fprintf(stderr, "Unexpect packet, expect OK_Packet.\n");
+        fprintf(stderr, "Unexpect response handshake packet, expect OK_Packet.\n");
         exit(2);
     }
 
-#ifdef DEBUG
-    printf("Response from server: \n");
-    print_memory(buf, tmp);
-#endif
+    fprintf(logfp, "[Info] handshake master response ok.\n");
 
     return 0;
 }
@@ -217,12 +209,8 @@ static int handshake_with_server(server_info *info) {
     length = read_int3(buf);
     sequence_id = *(int *)(buf + 3);
 
-#ifdef DEBUG
-    printf("Package from server: ");
-    print_memory(buf, length + 4);
-    printf("Package length: %d\n", length);
-    printf("Package sequence ID: %d\n", sequence_id);
-#endif
+    fprintf(logfp, "[Info] handshake with master package length: %d\n", length);
+    fprintf(logfp, "[Info] handshake with master package sequence ID: %d\n", sequence_id);
 
     parse_handshake_body(buf + 4, length - 4, sequence_id, info);
 
