@@ -61,7 +61,6 @@ int read_config(server_info *config)
     int cursor = 0;
     json_object *json;
     enum json_tokener_error jerr;
-    enum json_type item_type;
 
     buffer = malloc(sizeof(char) * BUFFER_SIZE);
     fp = fopen("fake-slave.json", "r");
@@ -91,6 +90,13 @@ int read_config(server_info *config)
         // open log for write
         if (strcmp(key, "log") == 0) {
             config->logfp = fopen(json_object_get_string(val), "a");
+            if (!config->logfp) {
+                perror("unable to open log file for write");
+                exit(2);
+            }
+
+            // line buffered log file pointer
+            setlinebuf(config->logfp);
         }
     }
 
@@ -98,10 +104,9 @@ int read_config(server_info *config)
     json_object_put(json);
     free(buffer);
     if (fprintf(config->logfp, "[Info] read config from file completed.\n") < 0) {
-        perror("[Error] unable to write to log file.\n");
+        perror("unable to write to log file.\n");
         exit(2);
     }
-    fflush(config->logfp);
     return 0;
 }
 
