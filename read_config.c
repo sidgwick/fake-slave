@@ -103,7 +103,7 @@ int read_config(server_info *config)
     // free memory
     json_object_put(json);
     free(buffer);
-    if (fprintf(config->logfp, "[Info] read config from file completed.\n") < 0) {
+    if (fprintf(logfp, "[Info] read config from file completed.\n") < 0) {
         perror("unable to write to log file.\n");
         exit(2);
     }
