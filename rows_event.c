@@ -11,6 +11,7 @@
 #include "binary_type.h"
 #include "binlog.h"
 #include "tools.h"
+#include "log.h"
 #include "debug.h"
 
 // 取某个字段对应的 column_def(2 bytes)
@@ -82,10 +83,8 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     field_val *v = &va;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
-#ifdef DEBUG
-    printf("DEF: %02x, ID: %d, VALUE: ", column_def, column_id);
-    // print_memory(buf, 20);
-#endif
+    logger(LOG_DEBUG, "row field: DEF => %02x, ID => %d\n", column_def, column_id);
+    printf("row field: DEF => %02x, ID => %d\n", column_def, column_id);
 
     v->type = column_def;
     switch (column_def) {
@@ -121,16 +120,12 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         v->val.float_num = read_mysql_float(buf + cursor);
         cursor += 4;
         break;
-    case MYSQL_TYPE_VARCHAR:
-        meta = get_column_meta_def(ev->table_map, column_id);
-        cursor += read_mysql_varchar(buf + cursor, meta);
-        break;
     case MYSQL_TYPE_TIMESTAMP2:
-        read_mysql_timestamp2(buf + cursor);
+        v->val.integer = read_mysql_timestamp2(buf + cursor);
         cursor += 4;
         break;
     case MYSQL_TYPE_DATETIME2:
-        read_mysql_datetime2(buf + cursor);
+        v->val.datetime2 = read_mysql_datetime2(buf + cursor);
         cursor += 5;
         break;
     case MYSQL_TYPE_DATE:
@@ -144,6 +139,10 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     case MYSQL_TYPE_TIME2:
         read_mysql_time2(buf + cursor);
         cursor += 3;
+        break;
+    case MYSQL_TYPE_VARCHAR:
+        meta = get_column_meta_def(ev->table_map, column_id);
+        cursor += read_mysql_varchar(buf + cursor, meta);
         break;
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VAR_STRING:
@@ -169,7 +168,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
 }
 
 // 从 rows event 里面循环拿到 row 数据
-int fetch_a_row(struct rows_event *ev, const char *buf)
+static int fetch_a_row(struct rows_event *ev, const char *buf)
 {
     int cursor = 0;
     int tmp = 0;
@@ -187,11 +186,6 @@ int fetch_a_row(struct rows_event *ev, const char *buf)
     memcpy(null_bitmap, buf + cursor, tmp);
     cursor += tmp;
 
-    // NOT UPDATE NEW, for pretty output
-    if (ev->header.event_type != UPDATE_ROWS_EVENTv1 || (update_row % 2 == 0)) {
-        printf("NORMAL ROW:\n");
-    }
-
     // loop to get column value
     for (int i = 0; i < ev->column_count; i++) {
         cursor += get_column_val(ev, i, buf + cursor);
@@ -199,9 +193,10 @@ int fetch_a_row(struct rows_event *ev, const char *buf)
 
     // UPDATE NEW VALUES
     if (ev->header.event_type == UPDATE_ROWS_EVENTv1 && (update_row % 2 == 0)) {
-        printf("UPDATE NEW:\n");
         cursor += fetch_a_row(ev, buf + cursor);
     }
+
+    // TODO: field value list
 
     return cursor;
 }
@@ -240,47 +235,40 @@ int rows_event(struct rows_event *ev, const char *buf)
         cursor += tmp;
     }
 
-#ifdef DEBUG
     switch (ev->header.event_type) {
     case WRITE_ROWS_EVENTv0:
-        printf("WRITE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv0));
+        logger(LOG_DEBUG, "WRITE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv0));
         break;
     case UPDATE_ROWS_EVENTv0:
-        printf("UPDATE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv0));
+        logger(LOG_DEBUG, "UPDATE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv0));
         break;
     case DELETE_ROWS_EVENTv0:
-        printf("DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
+        logger(LOG_DEBUG, "DELETE_ROWS_EVENTv0, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv0));
         break;
     case WRITE_ROWS_EVENTv1:
-        printf("WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
+        logger(LOG_DEBUG, "WRITE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv1));
         break;
     case UPDATE_ROWS_EVENTv1:
-        printf("UPDATE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv1));
+        logger(LOG_DEBUG, "UPDATE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv1));
         break;
     case DELETE_ROWS_EVENTv1:
-        printf("DELETE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv1));
+        logger(LOG_DEBUG, "DELETE_ROWS_EVENTv1, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv1));
         break;
     case WRITE_ROWS_EVENTv2:
-        printf("WRITE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv2));
+        logger(LOG_DEBUG, "WRITE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(WRITE_ROWS_EVENTv2));
         break;
     case UPDATE_ROWS_EVENTv2:
-        printf("UPDATE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv2));
+        logger(LOG_DEBUG, "UPDATE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(UPDATE_ROWS_EVENTv2));
         break;
     case DELETE_ROWS_EVENTv2:
-        printf("DELETE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv2));
+        logger(LOG_DEBUG, "DELETE_ROWS_EVENTv2, Header length: %02X\n", get_post_header_length(DELETE_ROWS_EVENTv2));
         break;
     }
 
-    printf("Table id: %ld(%ld-[%s, %s])\n", ev->table_id, ev->table_map.table_id, ev->table_map.schema_name, ev->table_map.table_name);
-    printf("Flags: ");print_memory((char *)&ev->flags, 2);
-    printf("Column count: %d\n", ev->column_count);
-#endif
+    logger(LOG_DEBUG, "Table id: %ld(%ld-[%s, %s])\n", ev->table_id, ev->table_map.table_id, ev->table_map.schema_name, ev->table_map.table_name);
 
     // rows.
     while (cursor < (ev->header.event_size - 19)) {
-#ifdef DEBUG
-        printf("Next row coluser\n");
-#endif
         cursor += fetch_a_row(ev, buf + cursor);
     }
 

@@ -101,7 +101,7 @@ int read_mysql_date(const char *buf)
     return 0;
 }
 
-int read_mysql_datetime2(const char *buf)
+bin_datetime2 read_mysql_datetime2(const char *buf)
 {
     /*
      * 1 bit  sign            (1= non-negative, 0= negative)
@@ -119,23 +119,16 @@ int read_mysql_datetime2(const char *buf)
      */
 
     // 这部分的位移操作是为了修正数据在内存中的'bits'到相应的正确位置
-    int8_t sign = 0;
-
+    bin_datetime2 value;
     uint32_t tmp = 0;
-    uint16_t year = 0;
-    uint8_t month = 0;
-    uint8_t day = 0;
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    uint8_t second = 0;
 
     // 计算得到数据的符号
     tmp = read_uint3(buf);
-    sign = *(int8_t *)&tmp;
-    if (sign & 0x80) {
-        sign = 1;
+    value.sign = *(int8_t *)&tmp;
+    if (value.sign & 0x80) {
+        value.sign = 1;
     } else {
-        sign = -1;
+        value.sign = -1;
     }
 
     // 计算 year * 13 + month
@@ -143,22 +136,22 @@ int read_mysql_datetime2(const char *buf)
     tmp = ntohl(tmp);
     tmp = tmp >> 14; // 没有用的垃圾位数清楚掉
 
-    year = tmp / 13;
-    month = tmp % 13;
+    value.year = tmp / 13;
+    value.month = tmp % 13;
 
     // 计算 day
-    day = *(buf + 2);
-    day = (day & 0x3E) >> 1;
+    value.day = *(buf + 2);
+    value.day = (value.day & 0x3E) >> 1;
 
     tmp = read_uint4(buf + 1);
     tmp = ntohl(tmp);
-    hour = (tmp >> 12) & 0x0000001F;
-    minute = (tmp >> 6) & 0x0000003F;
-    second = tmp & 0x0000003F;
+    value.hour = (tmp >> 12) & 0x0000001F;
+    value.minute = (tmp >> 6) & 0x0000003F;
+    value.second = tmp & 0x0000003F;
 
-    printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (sign == 1) ? '+' : '-', year, month, day, hour, minute, second);
+    printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (value.sign == 1) ? '+' : '-', value.year, value.month, value.day, value.hour, value.minute, value.second);
 
-    return 0;
+    return value;
 }
 
 // TIMESTAMP: A four-byte integer representing seconds UTC since the epoch ('1970-01-01 00:00:00' UTC)
@@ -171,9 +164,7 @@ int read_mysql_timestamp2(const char *buf)
     value = read_int4(buf);
     value = ntohl(value);
 
-    printf("TIMESTAMP2: %u\n", value);
-
-    return 0;
+    return value;
 }
 
 int read_mysql_long(const char *buf)

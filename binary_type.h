@@ -1,8 +1,6 @@
 #ifndef BINARY_TYPE_H
-#define BINART_TYPE_H
+#define BINARY_TYPE_H
 
-
-#include "binlog.h"
 #include "client.h"
 
 // MySQL data type
@@ -37,10 +35,20 @@
 #define MYSQL_TYPE_STRING 0xfe
 #define MYSQL_TYPE_GEOMETRY 0xff
 
+typedef struct {
+    uint16_t year;
+    int8_t sign;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+} bin_datetime2;
+
 int read_mysql_time(const char *buf);
 int read_mysql_time2(const char *buf);
 int read_mysql_date(const char *buf);
-int read_mysql_datetime2(const char *buf);
+bin_datetime2 read_mysql_datetime2(const char *buf);
 int read_mysql_timestamp2(const char *buf);
 
 int read_mysql_long(const char *buf);

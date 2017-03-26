@@ -2,6 +2,7 @@
 #define BINLOG_H
 
 #include "client.h"
+#include "binary_type.h"
 
 #define UNKNOWN_EVENT 0x00
 #define START_EVENT_V3 0x01
@@ -174,6 +175,7 @@ typedef struct field_value {
         char *decimal;
         double double_num;
         float float_num;
+        bin_datetime2 datetime2;
     } val;
     struct field_value *next;
 } field_val;
