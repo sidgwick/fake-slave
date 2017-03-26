@@ -374,6 +374,8 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
     return 0;
 }
 
+// TODO: binlog stream 也是基于 packet 的. 所以先解析 packet, 再解析 event
+// 才是正确的.
 int run_binlog_stream(server_info *info)
 {
     char buf[BUF_SIZE];

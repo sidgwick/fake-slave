@@ -11,6 +11,10 @@
 
 ## TODO
 
-1. checksum_binlog, 可以延后实现.
-2. rows event 事件里面对数据值使用链表保存, 方便以后生成 JSON
-3. 不考虑其他数据写入, 先正确的组合 JSON 输出到 stdout
+- checksum_binlog, 可以延后实现.
+- binlog stream 也是基于 packet 的. 所以先解析 packet, 再解析 event 才是正确的.
+
+  binlog.c: `int run_binlog_stream(server_info *info)`
+
+- rows event 事件里面对数据值使用链表保存, 方便以后生成 JSON
+- 不考虑其他数据写入, 先正确的组合 JSON 输出到 stdout
