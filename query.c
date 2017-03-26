@@ -8,6 +8,7 @@
 #include "packet.h"
 #include "binlog.h"
 #include "tools.h"
+#include "log.h"
 #include "debug.h"
 
 int send_query(server_info *info, const char *sql)
@@ -107,6 +108,7 @@ int fetch_query_row(server_info *info)
 int checksum_binlog(server_info *info)
 {
     // TODO: query from server.
+    logger(LOG_DEBUG, "checksum binlog request not send.\n");
     return 0;
 
     // char *sql = "SHOW GLOBAL VARIABLES LIKE 'BINLOG_CHECKSUM'";
@@ -175,6 +177,8 @@ int register_as_slave(server_info *info)
         exit(3);
     }
 
+    logger(LOG_DEBUG, "register as a slave ok.\n");
+
     return 0;
 }
 
@@ -189,8 +193,7 @@ int send_binlog_dump_request(server_info *info)
     cursor += 1;
 
     // binlog postion
-    tmp = 4;
-    memcpy(buf + cursor, &tmp, 4);
+    memcpy(buf + cursor, &info->master.position, 4);
     cursor += 4;
 
     // flag
@@ -204,15 +207,16 @@ int send_binlog_dump_request(server_info *info)
     cursor += 4;
 
     // binlog file name.
-    char binlog_filename[] = "mysql-bin.000001";
-    strcpy(buf + cursor, binlog_filename);
-    cursor += strlen(binlog_filename) + 1; // include the '\0' term null byte.
+    strcpy(buf + cursor, info->master.binlog);
+    cursor += strlen(info->master.binlog) + 1; // include the '\0' term null byte.
 
     tmp = cursor - 4;
     memcpy(buf, &tmp, 3);
     *(buf + 3) = 0;
 
     write(info->sockfd, buf, cursor);
+
+    logger(LOG_DEBUG, "send binlog dump request OK.\n");
 
     return 0;
 }

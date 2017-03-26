@@ -5,6 +5,7 @@
         "user": "root",
         "password": "1111",
         "database": "test",
+        "binlog": "mysql-bin.000001",
         "position": 0
     },
     "log": {

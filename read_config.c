@@ -65,12 +65,16 @@ static int config_master(struct mysql_server *server, json_object *json)
             server->database = buffer;
             continue;
         }
-        if (strcmp(key, "debug") == 0) {
-            server->debug = (short int)json_object_get_boolean(val);
+        if (strcmp(key, "binlog") == 0) {
+            server->binlog = buffer;
             continue;
         }
         if (strcmp(key, "position") == 0) {
             server->position = json_object_get_int(val);
+            continue;
+        }
+        if (strcmp(key, "debug") == 0) {
+            server->debug = (short int)json_object_get_boolean(val);
             continue;
         }
     }

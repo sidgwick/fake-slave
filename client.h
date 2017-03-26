@@ -19,6 +19,7 @@ struct mysql_server {
     short int debug;
     short int port;
     int position;
+    char *binlog;
     char *host;
     char *user;
     char *password;
