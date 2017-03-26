@@ -400,8 +400,8 @@ int run_binlog_stream(server_info *info)
 
             // cursor++ => a 00-OK byte or a Err_Packet 0xFF header bit
             // if we got a error packet.
-            unsigned char debug_tmp = *(buf + cursor++);
-            if (debug_tmp == (unsigned char) 0xFF) {
+            unsigned char packet_header = *(buf + cursor++);
+            if (packet_header == (unsigned char) 0xFF) {
                 unsigned short int error = read_int2(buf + cursor);
                 cursor += 2;
 
