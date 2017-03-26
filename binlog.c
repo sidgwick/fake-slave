@@ -49,8 +49,6 @@ static int binlog_event_header(struct event_header *header, const char *buf)
     header->flags = read_int2(buf + cursor);
     cursor += 2;
 
-    logger(LOG_DEBUG, "binlog event header: event_type = 0x%02x\n", header->event_type);
-
     return cursor;
 }
 
@@ -216,77 +214,51 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
 
     switch (ev_header.event_type) {
     case UNKNOWN_EVENT:
-#ifdef DEBUG
-        printf("UNKNOWN_EVENT\n");
-#endif
+        logger(LOG_DEBUG, "UNKNOWN_EVENT\n");
         break;
     case START_EVENT_V3:
-#ifdef DEBUG
-        printf("START_EVENT_V3, Header length: %02X\n", get_post_header_length(START_EVENT_V3));
-#endif
+        logger(LOG_DEBUG, "START_EVENT_V3, Header length: %02X\n", get_post_header_length(START_EVENT_V3));
         break;
     case QUERY_EVENT:
         query_ev.header = ev_header;
         query_event(&query_ev, buf);
         break;
     case STOP_EVENT:
-#ifdef DEBUG
-        printf("STOP_EVENT, Header length: %02X\n", get_post_header_length(STOP_EVENT));
-#endif
+        logger(LOG_DEBUG, "STOP_EVENT, Header length: %02X\n", get_post_header_length(STOP_EVENT));
         break;
     case ROTATE_EVENT:
         rotate_ev.header = ev_header;
         rotate_event(&rotate_ev, buf);
         break;
     case INTVAR_EVENT:
-#ifdef DEBUG
-        printf("INTVAR_EVENT, Header length: %02X\n", get_post_header_length(INTVAR_EVENT));
-#endif
+        logger(LOG_DEBUG, "INTVAR_EVENT, Header length: %02X\n", get_post_header_length(INTVAR_EVENT));
         break;
     case LOAD_EVENT:
-#ifdef DEBUG
-        printf("LOAD_EVENT, Header length: %02X\n", get_post_header_length(LOAD_EVENT));
-#endif
+        logger(LOG_DEBUG, "LOAD_EVENT, Header length: %02X\n", get_post_header_length(LOAD_EVENT));
         break;
     case SLAVE_EVENT:
-#ifdef DEBUG
-        printf("SLAVE_EVENT, Header length: %02X\n", get_post_header_length(SLAVE_EVENT));
-#endif
+        logger(LOG_DEBUG, "SLAVE_EVENT, Header length: %02X\n", get_post_header_length(SLAVE_EVENT));
         break;
     case CREATE_FILE_EVENT:
-#ifdef DEBUG
-        printf("CREATE_FILE_EVENT, Header length: %02X\n", get_post_header_length(CREATE_FILE_EVENT));
-#endif
+        logger(LOG_DEBUG, "CREATE_FILE_EVENT, Header length: %02X\n", get_post_header_length(CREATE_FILE_EVENT));
         break;
     case APPEND_BLOCK_EVENT:
-#ifdef DEBUG
-        printf("APPEND_BLOCK_EVENT, Header length: %02X\n", get_post_header_length(APPEND_BLOCK_EVENT));
-#endif
+        logger(LOG_DEBUG, "APPEND_BLOCK_EVENT, Header length: %02X\n", get_post_header_length(APPEND_BLOCK_EVENT));
         break;
     case EXEC_LOAD_EVENT:
-#ifdef DEBUG
-        printf("EXEC_LOAD_EVENT, Header length: %02X\n", get_post_header_length(EXEC_LOAD_EVENT));
-#endif
+        logger(LOG_DEBUG, "EXEC_LOAD_EVENT, Header length: %02X\n", get_post_header_length(EXEC_LOAD_EVENT));
         break;
     case DELETE_FILE_EVENT:
-#ifdef DEBUG
-        printf("DELETE_FILE_EVENT, Header length: %02X\n", get_post_header_length(DELETE_FILE_EVENT));
-#endif
+        logger(LOG_DEBUG, "DELETE_FILE_EVENT, Header length: %02X\n", get_post_header_length(DELETE_FILE_EVENT));
         break;
     case NEW_LOAD_EVENT:
-#ifdef DEBUG
-        printf("NEW_LOAD_EVENT, Header length: %02X\n", get_post_header_length(NEW_LOAD_EVENT));
-#endif
+        logger(LOG_DEBUG, "NEW_LOAD_EVENT, Header length: %02X\n", get_post_header_length(NEW_LOAD_EVENT));
         break;
     case RAND_EVENT:
-#ifdef DEBUG
-        printf("RAND_EVENT, Header length: %02X\n", get_post_header_length(RAND_EVENT));
-#endif
+        logger(LOG_DEBUG, "RAND_EVENT, Header length: %02X\n", get_post_header_length(RAND_EVENT));
         break;
     case USER_VAR_EVENT:
-#ifdef DEBUG
-        printf("USER_VAR_EVENT, Header length: %02X\n", get_post_header_length(USER_VAR_EVENT));
-#endif
+        logger(LOG_DEBUG, "USER_VAR_EVENT, Header length: %02X\n", get_post_header_length(USER_VAR_EVENT));
         break;
     case FORMAT_DESCRIPTION_EVENT:
         fmt_des_ev.header = ev_header;
@@ -297,20 +269,14 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         {
             uint64_t xid = 0;
             xid = read_int8(buf);
-#ifdef DEBUG
-            printf("XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
-#endif
+            logger(LOG_DEBUG, "XID_EVENT: xid = %04ld, Header length: 0x%02X\n", xid, get_post_header_length(XID_EVENT));
         }
         break;
     case BEGIN_LOAD_QUERY_EVENT:
-#ifdef DEBUG
-        printf("BEGIN_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(BEGIN_LOAD_QUERY_EVENT));
-#endif
+        logger(LOG_DEBUG, "BEGIN_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(BEGIN_LOAD_QUERY_EVENT));
         break;
     case EXECUTE_LOAD_QUERY_EVENT:
-#ifdef DEBUG
-        printf("EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
-#endif
+        logger(LOG_DEBUG, "EXECUTE_LOAD_QUERY_EVENT, Header length: %02X\n", get_post_header_length(EXECUTE_LOAD_QUERY_EVENT));
         break;
     case TABLE_MAP_EVENT:
         table_map_ev.header = ev_header;
@@ -330,44 +296,28 @@ int parse_binlog_events(struct event_header ev_header, const char *buf)
         rows_event(&rows_ev, buf);
         break;
     case INCIDENT_EVENT:
-#ifdef DEBUG
-        printf("INCIDENT_EVENT, Header length: %02X\n", get_post_header_length(INCIDENT_EVENT));
-#endif
+        logger(LOG_DEBUG, "INCIDENT_EVENT, Header length: %02X\n", get_post_header_length(INCIDENT_EVENT));
         break;
     case HEARTBEAT_EVENT:
-#ifdef DEBUG
-        printf("HEARTBEAT_EVENT, Header length: %02X\n", get_post_header_length(HEARTBEAT_EVENT));
-#endif
+        logger(LOG_DEBUG, "HEARTBEAT_EVENT, Header length: %02X\n", get_post_header_length(HEARTBEAT_EVENT));
         break;
     case IGNORABLE_EVENT:
-#ifdef DEBUG
-        printf("IGNORABLE_EVENT, Header length: %02X\n", get_post_header_length(IGNORABLE_EVENT));
-#endif
+        logger(LOG_DEBUG, "IGNORABLE_EVENT, Header length: %02X\n", get_post_header_length(IGNORABLE_EVENT));
         break;
     case ROWS_QUERY_EVENT:
-#ifdef DEBUG
-        printf("ROWS_QUERY_EVENT, Header length: %02X\n", get_post_header_length(ROWS_QUERY_EVENT));
-#endif
+        logger(LOG_DEBUG, "ROWS_QUERY_EVENT, Header length: %02X\n", get_post_header_length(ROWS_QUERY_EVENT));
         break;
     case GTID_EVENT:
-#ifdef DEBUG
-        printf("GTID_EVENT, Header length: %02X\n", get_post_header_length(GTID_EVENT));
-#endif
+        logger(LOG_DEBUG, "GTID_EVENT, Header length: %02X\n", get_post_header_length(GTID_EVENT));
         break;
     case ANONYMOUS_GTID_EVENT:
-#ifdef DEBUG
-        printf("ANONYMOUS_GTID_EVENT, Header length: %02X\n", get_post_header_length(ANONYMOUS_GTID_EVENT));
-#endif
+        logger(LOG_DEBUG, "ANONYMOUS_GTID_EVENT, Header length: %02X\n", get_post_header_length(ANONYMOUS_GTID_EVENT));
         break;
     case PREVIOUS_GTIDS_EVENT:
-#ifdef DEBUG
-        printf("PREVIOUS_GTIDS_EVENT, Header length: %02X\n", get_post_header_length(PREVIOUS_GTIDS_EVENT));
-#endif
+        logger(LOG_DEBUG, "PREVIOUS_GTIDS_EVENT, Header length: %02X\n", get_post_header_length(PREVIOUS_GTIDS_EVENT));
         break;
     default:
-#ifdef DEBUG
-        printf("Unknow binlog event.\n");
-#endif
+        logger(LOG_DEBUG, "Unknow binlog event.\n");
         break;
     }
 
@@ -383,7 +333,7 @@ int run_binlog_stream(server_info *info)
     int cursor = 0;
 
     while ((rbuflen += read(info->sockfd, buf + rbuflen, BUF_SIZE - rbuflen)) != -1) {
-        logger(LOG_DEBUG, "read binlog stream from server: length = %d\n%s\n", rbuflen);
+        logger(LOG_DEBUG, "read binlog stream from server, read length = %d\n", rbuflen);
 
         // do parse packet and binlog
         cursor = 0;
@@ -432,9 +382,6 @@ int run_binlog_stream(server_info *info)
             parse_binlog_events(ev_header, buf + cursor);
 
             cursor += ev_header.event_size - 19;
-#ifdef DEBUG
-            puts("======================================");
-#endif
         }
 
         memcpy(buf, buf + cursor, rbuflen - cursor);
