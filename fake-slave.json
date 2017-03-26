@@ -5,7 +5,10 @@
         "user": "root",
         "password": "1111",
         "database": "test",
-        "position": 0,
+        "position": 0
     },
-    "log": "fake-slave.log"
+    "log": {
+        "file": "fake-slave.log",
+        "level": 0
+    }
 }

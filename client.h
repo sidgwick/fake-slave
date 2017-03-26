@@ -15,9 +15,6 @@
 
 #define BUF_SIZE 1024
 
-
-FILE *logfp;
-
 struct mysql_server {
     short int debug;
     short int port;

@@ -11,6 +11,7 @@
 #include "packet.h"
 #include "client.h"
 #include "tools.h"
+#include "log.h"
 
 #ifdef DEBUG
 #include "debug.h"
@@ -79,7 +80,7 @@ static int parse_handshake_body(char *buf, int length, int sequence_id, server_i
     info->auth_plugin_name = malloc(sizeof(char) * strlen(buf));
     strcpy(info->auth_plugin_name, buf);
 
-    fprintf(logfp, "[Info] parse handshake package completed\n");
+    logger(LOG_INFO, "parse handshake package completed\n");
 
     return 0;
 }
@@ -168,7 +169,7 @@ static int response_handshake_to_server(server_info *info)
     // send handshake response to server.
     write(sockfd, buf, cursor);
 
-    fprintf(logfp, "[Info] handshake response has been sent to server.\n");
+    logger(LOG_INFO, "handshake response has been sent to server.\n");
 
     // make soure we login success
     if ((tmp = read(sockfd, buf, BUF_SIZE)) == -1) {
@@ -184,7 +185,7 @@ static int response_handshake_to_server(server_info *info)
         exit(2);
     }
 
-    fprintf(logfp, "[Info] handshake master response ok.\n");
+    logger(LOG_INFO, "handshake master response ok.\n");
 
     return 0;
 }
@@ -209,8 +210,8 @@ static int handshake_with_server(server_info *info) {
     length = read_int3(buf);
     sequence_id = *(int *)(buf + 3);
 
-    fprintf(logfp, "[Info] handshake with master package length: %d\n", length);
-    fprintf(logfp, "[Info] handshake with master package sequence ID: %d\n", sequence_id);
+    logger(LOG_INFO, "handshake with master package length: %d\n", length);
+    logger(LOG_INFO, "handshake with master package sequence ID: %d\n", sequence_id);
 
     parse_handshake_body(buf + 4, length - 4, sequence_id, info);
 

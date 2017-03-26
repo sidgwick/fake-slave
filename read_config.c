@@ -5,8 +5,31 @@
 #include <json.h>
 
 #include "client.h"
+#include "log.h"
 
 #define BUFFER_SIZE 1024
+
+static void config_log(json_object *json)
+{
+    const char *filename = NULL;
+    int level = LOG_ERROR;
+    json_object_object_foreach(json, key, val) {
+        if (strcmp(key, "file") == 0) {
+            filename = json_object_get_string(val);
+        }
+
+        if (strcmp(key, "level") == 0) {
+            level = json_object_get_int(val);
+        }
+    }
+
+    if (!filename) {
+        fprintf(stderr, "which log file do you want to write to?\n");
+        exit(2);
+    }
+
+    init_logger(filename, level);
+}
 
 static int config_master(struct mysql_server *server, json_object *json)
 {
@@ -87,26 +110,16 @@ int read_config(server_info *config)
             continue;
         }
 
-        // open log for write
+        // log config
         if (strcmp(key, "log") == 0) {
-            logfp = fopen(json_object_get_string(val), "a");
-            if (!logfp) {
-                perror("unable to open log file for write");
-                exit(2);
-            }
-
-            // line buffered log file pointer
-            setlinebuf(logfp);
+            config_log(val);
         }
     }
 
     // free memory
     json_object_put(json);
     free(buffer);
-    if (fprintf(logfp, "[Info] read config from file completed.\n") < 0) {
-        perror("unable to write to log file.\n");
-        exit(2);
-    }
+    logger(LOG_INFO, "read config from file completed.\n");
     return 0;
 }
 
@@ -120,7 +133,7 @@ static void usage(char *name)
             "-u <user>     database username\n"
             "-p <password> database password\n"
             "-d            enable debug output\n"
-            );
+           );
 }
 
 // command line configure
@@ -154,8 +167,5 @@ void parse_command_pareters(int argc, char *argv[], server_info *info)
         }
     }
 
-    if (fprintf(logfp, "[Info] read parameters from command line completed.\n") < 0) {
-        perror("[Error] unable to write to log file.\n");
-        exit(2);
-    }
+    logger(LOG_INFO, "read parameters from command line completed.\n");
 }
