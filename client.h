@@ -13,7 +13,7 @@
 
 #define CHARSET_UTF_8 0x21 // 33, utf-8
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 
 struct mysql_server {
     short int debug;

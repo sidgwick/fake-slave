@@ -11,6 +11,7 @@
 #include "rows_event.h"
 #include "tools.h"
 #include "debug.h"
+#include "log.h"
 
 char *event_types_post_header_length = NULL;
 
@@ -26,7 +27,7 @@ int get_post_header_length(int event_type)
 }
 
 // return header length
-int binlog_event_header(struct event_header *header, const char *buf)
+static int binlog_event_header(struct event_header *header, const char *buf)
 {
     int cursor = 0;
 
@@ -48,9 +49,7 @@ int binlog_event_header(struct event_header *header, const char *buf)
     header->flags = read_int2(buf + cursor);
     cursor += 2;
 
-#ifdef DEBUG
-    print_binlog_event_header(header);
-#endif
+    logger(LOG_DEBUG, "binlog event header: event_type = 0x%02x\n", header->event_type);
 
     return cursor;
 }
@@ -382,25 +381,39 @@ int run_binlog_stream(server_info *info)
     int cursor = 0;
 
     while ((rbuflen += read(info->sockfd, buf + rbuflen, BUF_SIZE - rbuflen)) != -1) {
-        // do parse binlog.
+        logger(LOG_DEBUG, "read binlog stream from server: length = %d\n%s\n", rbuflen);
+
+        // do parse packet and binlog
         cursor = 0;
         // 1. 最少需要能把packet头部, binlog event头部解析出来, 没有的话, 就需要再向服务器读
         while (cursor + (4 + 19 + 1) < rbuflen) {
-
-#ifdef DEBUG
             int length = 0; // packet length
             unsigned char sequence_id = 0; // packet sequence id
-
             length = read_int3(buf + cursor);
             sequence_id = *(buf + cursor + 3);
+            logger(LOG_DEBUG, "get binlog packet: length = %d, sequence_id = %u\n", length, sequence_id);
 
-            printf("\e[31mBinlog packet\e[0m: length = %04d, sequence_id = %u\n", length, sequence_id);
-#endif
             // packet length(3 bytes) + sequence_id(1 byte)
             cursor += 4;
 
-            // skip a 00-OK byte
-            cursor += 1;
+            // cursor++ => a 00-OK byte or a Err_Packet 0xFF header bit
+            // if we got a error packet.
+            unsigned char debug_tmp = *(buf + cursor++);
+            if (debug_tmp == (unsigned char) 0xFF) {
+                unsigned short int error = read_int2(buf + cursor);
+                cursor += 2;
+
+                if (CLIENT_PROTOCOL_41 && info->capability_flags) {
+                    // 1 byte sql_state_marker
+                    // 5 bytes sql_state
+                    cursor += 6;
+                }
+
+                char *message = buf + cursor;
+
+                fprintf(stderr, "unexcepted error packet:\ncode: %d\nmessage: %s\n", error, message);
+                exit(2);
+            }
 
             // real binlog event
             struct event_header ev_header;
@@ -409,6 +422,7 @@ int run_binlog_stream(server_info *info)
             // 2. 判断剩下的buffer里面, 是不是有这个完整的binlog event.
             // 没有的话, buf游标往回退, 等服务器返回更多的数据后, 再处理
             if (cursor + (ev_header.event_size - 19) > rbuflen) {
+                logger(LOG_DEBUG, "not a completed binlog event, need more data\n");
                 cursor -= (19 + 1 + 4);
                 break;
             }
