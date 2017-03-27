@@ -35,7 +35,7 @@ int read_mysql_time(const char *buf)
     minute = ((tmp % 10000) / 100);
     second = tmp % 100;
 
-    printf("TIME: %d:%d:%d\n", hour, minute, second);
+    logger(LOG_DEBUG, "TIME: %d:%d:%d\n", hour, minute, second);
 
     return 0;
 }
@@ -71,7 +71,7 @@ int read_mysql_time2(const char *buf)
     minute = ((tmp >> 14) & 0x0000003F);
     second = ((tmp >> 8) & 0x0000003F);
 
-    printf("TIME2: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
+    logger(LOG_DEBUG, "TIME2: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
 
     return 0;
 }
@@ -96,7 +96,7 @@ int read_mysql_date(const char *buf)
     month = (tmp & ((1 << 4) - 1) << 5) >> 5;
     day = (tmp & ((1 << 5) - 1));
 
-    printf("DATE: %4u-%02u-%02u\n", year, month, day);
+    logger(LOG_DEBUG, "DATE: %4u-%02u-%02u\n", year, month, day);
 
     return 0;
 }
@@ -149,7 +149,7 @@ bin_datetime2 read_mysql_datetime2(const char *buf)
     value.minute = (tmp >> 6) & 0x0000003F;
     value.second = tmp & 0x0000003F;
 
-    printf("DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (value.sign == 1) ? '+' : '-', value.year, value.month, value.day, value.hour, value.minute, value.second);
+    logger(LOG_DEBUG, "DATETIME2: %c%04u-%02u-%02u %02u:%02u:%02u\n", (value.sign == 1) ? '+' : '-', value.year, value.month, value.day, value.hour, value.minute, value.second);
 
     return value;
 }
@@ -164,6 +164,8 @@ int read_mysql_timestamp2(const char *buf)
     value = read_int4(buf);
     value = ntohl(value);
 
+    logger(LOG_DEBUG, "TIMESTAMP2: %d\n", value);
+
     return value;
 }
 
@@ -173,9 +175,7 @@ int read_mysql_long(const char *buf)
     int iv = 0;
     iv = read_int4(buf);
 
-#ifdef DEBUG
-    printf("LONG %d\n", iv);
-#endif
+    logger(LOG_DEBUG, "LONG %d\n", iv);
 
     return iv;
 }
@@ -186,18 +186,14 @@ int read_mysql_int24(const char *buf)
     int iv = 0;
     iv = read_int3(buf);
 
-#ifdef DEBUG
-    printf("INT24 %d\n", iv);
-#endif
+    logger(LOG_DEBUG, "INT24 %d\n", iv);
 
     return iv;
 }
 
 int read_mysql_tiny(const char *buf)
 {
-#ifdef DEBUG
-    printf("TINY INT: %d\n", *buf);
-#endif
+    logger(LOG_DEBUG, "TINY INT: %d\n", *buf);
 
     return *buf;
 }
@@ -207,9 +203,7 @@ int read_mysql_short(const char *buf)
     uint16_t num = 0;
 
     num = read_uint2(buf);
-#ifdef DEBUG
-    printf("SHORT INT: %d\n", num);
-#endif
+    logger(LOG_DEBUG, "SHORT INT: %d\n", num);
 
     return 0;
 }
@@ -219,9 +213,7 @@ int read_mysql_longlong(const char *buf)
     int64_t num = 0;
 
     num = read_int8(buf);
-#ifdef DEBUG
-    printf("LONG LONG INT: %ld\n", num);
-#endif
+    logger(LOG_DEBUG, "LONG LONG INT: %ld\n", num);
 
     return 0;
 }
@@ -240,9 +232,7 @@ float read_mysql_float(const char *buf)
     float f;
 
     f = read_float(buf);
-#ifdef DEBUG
-    printf("FLOAT: %f\n", f);
-#endif
+    logger(LOG_DEBUG, "FLOAT: %f\n", f);
 
     return f;
 }
@@ -252,9 +242,7 @@ double read_mysql_double(const char *buf)
     double d;
 
     d = read_double(buf);
-#ifdef DEBUG
-    printf("DOUBLE %lf\n", d);
-#endif
+    logger(LOG_DEBUG, "DOUBLE %lf\n", d);
 
     return d;
 }
@@ -279,7 +267,7 @@ int read_mysql_varchar(const char *buf, const char *meta)
         val = get_length_encode_string(buf, &tmp);
     }
 
-    printf("VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
+    logger(LOG_DEBUG, "VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
 
     return tmp;
 }
