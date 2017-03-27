@@ -129,11 +129,11 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         cursor += 5;
         break;
     case MYSQL_TYPE_DATE:
-        read_mysql_date(buf + cursor);
+        v->val.date = read_mysql_date(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_TIME:
-        read_mysql_time(buf + cursor);
+        v->val.time = read_mysql_time(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_TIME2:

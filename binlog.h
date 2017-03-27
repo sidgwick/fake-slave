@@ -176,6 +176,8 @@ typedef struct field_value {
         double double_num;
         float float_num;
         bin_datetime2 datetime2;
+        bin_date date;
+        bin_time time;
     } val;
     struct field_value *next;
 } field_val;

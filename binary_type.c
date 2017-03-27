@@ -13,9 +13,10 @@
 #include "binlog.h"
 #include "decimal.h"
 #include "tools.h"
+#include "log.h"
 #include "debug.h"
 
-int read_mysql_time(const char *buf)
+bin_time read_mysql_time(const char *buf)
 {
     /*
      * time = self.packet.read_uint24()
@@ -24,20 +25,18 @@ int read_mysql_time(const char *buf)
      * seconds=int(time % 100))
      */
     uint32_t tmp = 0;
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    uint8_t second = 0;
+    bin_time value;
 
     tmp = read_uint3(buf);
     tmp = ntohl(tmp);
 
-    hour = tmp / 10000;
-    minute = ((tmp % 10000) / 100);
-    second = tmp % 100;
+    value.hour = tmp / 10000;
+    value.minute = ((tmp % 10000) / 100);
+    value.second = tmp % 100;
 
-    logger(LOG_DEBUG, "TIME: %d:%d:%d\n", hour, minute, second);
+    logger(LOG_DEBUG, "TIME: %d:%d:%d\n", value.hour, value.minute, value.second);
 
-    return 0;
+    return value;
 }
 
 int read_mysql_time2(const char *buf)
@@ -76,7 +75,7 @@ int read_mysql_time2(const char *buf)
     return 0;
 }
 
-int read_mysql_date(const char *buf)
+bin_date read_mysql_date(const char *buf)
 {
     /*
      * time = self.packet.read_uint24()
@@ -86,19 +85,17 @@ int read_mysql_date(const char *buf)
      * day = (time & ((1 << 5) - 1))
      */
     uint32_t tmp = 0;
+    bin_date value;
 
     tmp = read_uint3(buf);
-    uint16_t year = 0;
-    uint8_t month = 0;
-    uint8_t day = 0;
 
-    year = (tmp & ((1 << 15) - 1) << 9) >> 9;
-    month = (tmp & ((1 << 4) - 1) << 5) >> 5;
-    day = (tmp & ((1 << 5) - 1));
+    value.year = (tmp & ((1 << 15) - 1) << 9) >> 9;
+    value.month = (tmp & ((1 << 4) - 1) << 5) >> 5;
+    value.day = (tmp & ((1 << 5) - 1));
 
-    logger(LOG_DEBUG, "DATE: %4u-%02u-%02u\n", year, month, day);
+    logger(LOG_DEBUG, "DATE: %4u-%02u-%02u\n", value.year, value.month, value.day);
 
-    return 0;
+    return value;
 }
 
 bin_datetime2 read_mysql_datetime2(const char *buf)

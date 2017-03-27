@@ -45,9 +45,21 @@ typedef struct {
     uint8_t second;
 } bin_datetime2;
 
-int read_mysql_time(const char *buf);
+typedef struct {
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+} bin_date;
+
+typedef struct {
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+} bin_time;
+
+bin_time read_mysql_time(const char *buf);
 int read_mysql_time2(const char *buf);
-int read_mysql_date(const char *buf);
+bin_date read_mysql_date(const char *buf);
 bin_datetime2 read_mysql_datetime2(const char *buf);
 int read_mysql_timestamp2(const char *buf);
 
