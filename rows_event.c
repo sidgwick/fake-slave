@@ -137,7 +137,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         cursor += 3;
         break;
     case MYSQL_TYPE_TIME2:
-        read_mysql_time2(buf + cursor);
+        v->val.time = read_mysql_time2(buf + cursor);
         cursor += 3;
         break;
     case MYSQL_TYPE_VARCHAR:

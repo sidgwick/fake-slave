@@ -52,13 +52,14 @@ typedef struct {
 } bin_date;
 
 typedef struct {
+    int8_t sign;
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
 } bin_time;
 
 bin_time read_mysql_time(const char *buf);
-int read_mysql_time2(const char *buf);
+bin_time read_mysql_time2(const char *buf);
 bin_date read_mysql_date(const char *buf);
 bin_datetime2 read_mysql_datetime2(const char *buf);
 int read_mysql_timestamp2(const char *buf);

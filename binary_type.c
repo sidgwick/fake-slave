@@ -39,7 +39,7 @@ bin_time read_mysql_time(const char *buf)
     return value;
 }
 
-int read_mysql_time2(const char *buf)
+bin_time read_mysql_time2(const char *buf)
 {
     /*
      * 1 bit sign    (1= non-negative, 0= negative)
@@ -51,28 +51,25 @@ int read_mysql_time2(const char *buf)
      * 24 bits = 3 bytes
      */
     uint32_t tmp = 0;
-    int8_t sign = 0;
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    uint8_t second = 0;
+    bin_time value;
 
     tmp = read_uint3(buf);
 
     // 确定符号位
     if (*(char *)&tmp & 0x80) {
-        sign = 1;
+        value.sign = 1;
     } else {
-        sign = -1;
+        value.sign = -1;
     }
 
     tmp = ntohl(tmp);
-    hour = ((tmp >> 20) & 0x00000FFF);
-    minute = ((tmp >> 14) & 0x0000003F);
-    second = ((tmp >> 8) & 0x0000003F);
+    value.hour = ((tmp >> 20) & 0x00000FFF);
+    value.minute = ((tmp >> 14) & 0x0000003F);
+    value.second = ((tmp >> 8) & 0x0000003F);
 
-    logger(LOG_DEBUG, "TIME2: %c%d:%d:%d\n", (sign == 1) ? '+' : '-', hour, minute, second);
+    logger(LOG_DEBUG, "TIME2: %c%d:%d:%d\n", (value.sign == 1) ? '+' : '-', value.hour, value.minute, value.second);
 
-    return 0;
+    return value;
 }
 
 bin_date read_mysql_date(const char *buf)
