@@ -98,7 +98,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_NEWDECIMAL:
         meta = get_column_meta_def(ev->table_map, column_id);
-        v->val.decimal = read_mysql_newdecimal(buf + cursor, meta, &cursor);
+        v->val.decimal = read_mysql_newdecimal(buf + cursor, &cursor, meta);
         break;
     case MYSQL_TYPE_TINY:
         v->val.integer = read_mysql_tiny(buf + cursor++);

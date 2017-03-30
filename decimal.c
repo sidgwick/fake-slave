@@ -6,8 +6,10 @@
 
 #include "client.h"
 #include "query.h"
+#include "binary_type.h"
 #include "binlog.h"
 #include "tools.h"
+#include "log.h"
 #include "debug.h"
 
 #define DIG_PER_DEC1 9
@@ -47,27 +49,14 @@ long int decimal_number_part(const char *buf, char len, int mask)
     return number;
 }
 
-char *decimal_as_string(char mask, long int integral, char *zero, long int fractional)
-{
-    char tmp_buf[100];
-    sprintf(tmp_buf, "%c%ld.%s%ld", (mask ? '-' : '\0'), integral, zero, fractional);
-
-    char *tmpp;
-    tmpp = malloc(sizeof(char) * strlen(tmp_buf) + 1);
-    strcpy(tmpp, tmp_buf);
-
-    return tmpp;
-}
-
 // TODO: negative number
-char *decimal_number(const char *buf, unsigned char precision, unsigned char scale, int *cursor)
+bin_decimal decimal_number(const char *buf, unsigned char precision, unsigned char scale, int *cursor)
 {
     int intdig2byte[DIG_PER_DEC1 + 1] = {0, 1, 1, 2, 2, 3, 3, 4, 4, 4};
-    long int integral = 0;
-    long int fractional = 0;
     unsigned char int_l = 0;
     unsigned char frac_l = 0;
     long int mask = (*buf & 0x80) ? 0 : -1;
+    bin_decimal value;
 
     int_l = intdig2byte[(precision - scale) % DIG_PER_DEC1] + (precision - scale) / DIG_PER_DEC1 * 4;
     frac_l = intdig2byte[scale % DIG_PER_DEC1] + scale / DIG_PER_DEC1 * 4;
@@ -76,30 +65,54 @@ char *decimal_number(const char *buf, unsigned char precision, unsigned char sca
     memcpy(nbuf, buf, int_l + frac_l);
     *nbuf ^= 0x80;
 
-    integral = decimal_number_part(nbuf, int_l, mask);
-    fractional = decimal_number_part(nbuf + int_l, frac_l, mask);
+    value.integral = decimal_number_part(nbuf, int_l, mask);
+    value.fractional = decimal_number_part(nbuf + int_l, frac_l, mask);
 
     free(nbuf);
 
-    // 保存为浮点数会出现精度损失, 所以保存为字符串表示.
-    char zero[10];
-    int tmp = scale; // 需要前置多少个0
-    long int frac = fractional;
+    // 需要前置多少个0
+    long int frac = value.fractional;
     while (frac > 0) {
         frac /= 10;
-        tmp--;
+        value.zeros++;
     }
+
+    *cursor = int_l + frac_l;
+
+    value.sign = mask ? '-' : '\0';
+    // return decimal_as_string(mask, integral, zero, fractional);
+    return value;
+}
+
+char *decimal_as_string(bin_decimal number)
+{
+    char tmp_buf[100];
+    char zero[10];
+    int tmp = number.zeros;
 
     zero[tmp] = '\0';
     while (tmp-- > 0) {
         zero[tmp] = '0';
     }
 
-#ifdef DEBUG
-    printf("DECIMAL: %c%ld.%s%ld\n", (mask ? '-' : '\0'), integral, zero, fractional);
-#endif
+    sprintf(tmp_buf, "%c%ld.%s%ld", (number.sign ? '-' : '\0'), number.integral, zero, number.fractional);
 
-    *cursor = int_l + frac_l;
+    char *tmpp;
+    tmpp = malloc(sizeof(char) * strlen(tmp_buf) + 1);
+    strcpy(tmpp, tmp_buf);
 
-    return decimal_as_string(mask, integral, zero, fractional);
+    return tmpp;
+}
+
+void display_decimal(bin_decimal number)
+{
+    char zero[10];
+    int tmp = number.zeros;
+
+    zero[tmp] = '\0';
+    while (tmp-- > 0) {
+        zero[tmp] = '0';
+    }
+
+    logger(LOG_DEBUG, "DECIMAL: %c%ld.%s%ld\n", (number.sign ? '-' : '\0'), number.integral, zero, number.fractional);
 }

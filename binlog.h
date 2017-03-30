@@ -172,9 +172,9 @@ typedef struct field_value {
     union {
         char *str;
         long long integer;
-        char *decimal;
         double double_num;
         float float_num;
+        bin_decimal decimal;
         bin_datetime2 datetime2;
         bin_date date;
         bin_time time;
