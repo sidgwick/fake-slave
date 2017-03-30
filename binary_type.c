@@ -241,27 +241,25 @@ double read_mysql_double(const char *buf)
     return d;
 }
 
-int read_mysql_varchar(const char *buf, const char *meta)
+bin_varchar read_mysql_varchar(const char *buf, int *cursor, const char *meta)
 {
-    // varchar
-    int tmp = 0;
-    char *val;
+    bin_varchar value;
 
     // 1st byte is type, 2nd byte is length.
     unsigned char prefix_num_length = *(meta + 1);
 
     if (prefix_num_length > 0) {
         // length of length encode string #mysql bug 37426#
-        memcpy(&tmp, buf, prefix_num_length);
+        memcpy(&value.len, buf, prefix_num_length);
 
-        val = malloc(sizeof(char) * tmp);
-        memcpy(val, buf + prefix_num_length, tmp);
-        tmp += prefix_num_length;
+        value.s = malloc(sizeof(char) * value.len);
+        memcpy(value.s, buf + prefix_num_length, value.len);
+        value.len += prefix_num_length;
     } else {
-        val = get_length_encode_string(buf, &tmp);
+        value.s = get_length_encode_string(buf, &value.len);
     }
 
-    logger(LOG_DEBUG, "VARCHAR %s(%d-%d)\n", val, prefix_num_length, tmp);
+    logger(LOG_DEBUG, "VARCHAR %s(%d-%d)\n", value.s, prefix_num_length, value.len);
 
-    return tmp;
+    return value;
 }

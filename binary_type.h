@@ -65,6 +65,11 @@ typedef struct {
     uint64_t fractional;
 } bin_decimal;
 
+typedef struct {
+    int len;
+    char *s;
+} bin_varchar;
+
 bin_time read_mysql_time(const char *buf);
 bin_time read_mysql_time2(const char *buf);
 bin_date read_mysql_date(const char *buf);
@@ -80,6 +85,6 @@ float read_mysql_float(const char *buf);
 double read_mysql_double(const char *buf);
 bin_decimal read_mysql_newdecimal(const char *buf, int *cursor, const char *meta);
 
-int read_mysql_varchar(const char *buf, const char *meta);
+bin_varchar read_mysql_varchar(const char *buf, int *cursor, const char *meta);
 
 #endif

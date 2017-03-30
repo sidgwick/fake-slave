@@ -170,7 +170,6 @@ struct rows_event {
 typedef struct field_value {
     char type;
     union {
-        char *str;
         long long integer;
         double double_num;
         float float_num;
@@ -178,6 +177,8 @@ typedef struct field_value {
         bin_datetime2 datetime2;
         bin_date date;
         bin_time time;
+        bin_varchar varchar;
+        char *str;
     } val;
     struct field_value *next;
 } field_val;

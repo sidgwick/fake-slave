@@ -142,7 +142,7 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
         break;
     case MYSQL_TYPE_VARCHAR:
         meta = get_column_meta_def(ev->table_map, column_id);
-        cursor += read_mysql_varchar(buf + cursor, meta);
+        v->val.varchar = read_mysql_varchar(buf + cursor, &cursor, meta);
         break;
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VAR_STRING:
