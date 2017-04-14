@@ -75,12 +75,10 @@ char *get_column_meta_def(struct table_map_event ev, int col_num)
 }
 
 // 取 row 里面对应某个 column_id 的数据
-int get_column_val(struct rows_event *ev, int column_id, const char *buf)
+int get_column_val(struct rows_event *ev, int column_id, const char *buf, field_val *v)
 {
     int cursor = 0;
     char *meta = NULL;
-    field_val va;
-    field_val *v = &va;
 
     unsigned char column_def = *(ev->table_map.column_def + column_id);
     logger(LOG_DEBUG, "row field: DEF => %02x, ID => %d\n", column_def, column_id);
@@ -167,6 +165,11 @@ int get_column_val(struct rows_event *ev, int column_id, const char *buf)
     return cursor;
 }
 
+void print_row(field_val *val)
+{
+
+}
+
 // 从 rows event 里面循环拿到 row 数据
 static int fetch_a_row(struct rows_event *ev, const char *buf)
 {
@@ -186,9 +189,10 @@ static int fetch_a_row(struct rows_event *ev, const char *buf)
     memcpy(null_bitmap, buf + cursor, tmp);
     cursor += tmp;
 
+    field_val *row_fields = malloc(sizeof(field_val) * ev->column_count);
     // loop to get column value
     for (int i = 0; i < ev->column_count; i++) {
-        cursor += get_column_val(ev, i, buf + cursor);
+        cursor += get_column_val(ev, i, buf + cursor, row_fields + i);
     }
 
     // UPDATE NEW VALUES
@@ -197,6 +201,9 @@ static int fetch_a_row(struct rows_event *ev, const char *buf)
     }
 
     // TODO: field value list
+    for (int i = 0; i < ev->column_count; i++) {
+        print_row(row_fields + i);
+    }
 
     return cursor;
 }
